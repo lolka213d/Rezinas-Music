@@ -316,6 +316,38 @@
                                       Width="160" HorizontalAlignment="Left" Margin="0,0,0,8" />
                             <TextBlock Text="{Binding StatsSummary}" Style="{StaticResource Muted}" TextWrapping="Wrap" />
                             <TextBlock Text="{Binding StatsDetail}" Style="{StaticResource Muted}" Margin="0,4,0,20" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding SpotifyConnectTitle}" FontWeight="Bold" FontSize="18" Margin="0,0,0,8" />
+                            <TextBlock Text="{Binding SpotifyConnectHint}" Style="{StaticResource Muted}" TextWrapping="Wrap"
+                                       Margin="0,0,0,14" MaxWidth="520" />
+                            <TextBlock Text="{Binding SpotifyStatusText}" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                            <WrapPanel Margin="0,0,0,12">
+                                <Button Style="{StaticResource OutlineButton}" Content="{Binding SpotifyConnectButtonLabel}"
+                                        Command="{Binding ConnectSpotifyCommand}" Padding="14,8" Margin="0,0,10,10"
+                                        Visibility="{Binding SpotifyIsConnected, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}" />
+                                <Button Style="{StaticResource OutlineButton}" Content="{Binding SpotifyDisconnectLabel}"
+                                        Command="{Binding DisconnectSpotifyCommand}" Padding="14,8" Margin="0,0,10,10"
+                                        Visibility="{Binding SpotifyIsConnected, Converter={StaticResource BoolToVisibility}}" />
+                                <Button Style="{StaticResource OutlineButton}" Content="{Binding SpotifySyncNowLabel}"
+                                        Command="{Binding SyncSpotifyNowCommand}" Padding="14,8" Margin="0,0,10,10"
+                                        Visibility="{Binding SpotifyIsConnected, Converter={StaticResource BoolToVisibility}}" />
+                            </WrapPanel>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding SpotifyAutoSyncLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                <CheckBox Grid.Column="1" Style="{StaticResource GlassToggle}" IsChecked="{Binding SpotifyAutoSyncEnabled}" />
+                            </Grid>
+                            <Grid Margin="0,0,0,24">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="120" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding SpotifyAutoSyncIntervalLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding SpotifySyncIntervalOptions}"
+                                          SelectedItem="{Binding SpotifyAutoSyncIntervalHours}" Width="120" />
+                            </Grid>
                             <TextBlock Text="{Binding BackupLabel}" FontWeight="SemiBold" Margin="0,0,0,10" />
                             <WrapPanel Margin="0,0,0,12">
                                 <Button Style="{StaticResource OutlineButton}" Content="{Binding ExportPlaylistsLabel}"

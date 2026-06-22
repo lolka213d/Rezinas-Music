@@ -61,7 +61,15 @@ program/
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+Copyright © 2026 [lolka213d](https://github.com/lolka213d). All rights reserved.
+
+This is **not** an open-source MIT license. See [LICENSE](LICENSE) for full terms.
+
+**You may:** use, copy, and modify the code for personal learning and experimentation on your own devices.
+
+**You may not:** sell the software, use it commercially, or distribute/redistribute copies (modified or not) to others.
+
+For commercial use or redistribution, contact the author.
 
 ## Privacy & data
 

@@ -59,6 +59,19 @@ public partial class CollectionsViewModel : ObservableObject
             if (e.PropertyName is nameof(PlayerViewModel.CurrentTrack) or nameof(PlayerViewModel.IsPlaying))
                 OnPropertyChanged(nameof(IsSelectionPlaying));
         };
+        _settings.SettingsChanged += (_, _) => _ = ReloadAfterExternalSyncAsync();
+    }
+
+    private async Task ReloadAfterExternalSyncAsync()
+    {
+        if (SelectedKind != CollectionKind.Playlists) return;
+        var selectedId = SelectedPlaylist?.Id;
+        await LoadPlaylistsAsync();
+        if (selectedId is int id)
+        {
+            SelectedPlaylist = Playlists.FirstOrDefault(p => p.Id == id);
+            await LoadTracksAsync();
+        }
     }
 
     public PlayerViewModel Player => _player;

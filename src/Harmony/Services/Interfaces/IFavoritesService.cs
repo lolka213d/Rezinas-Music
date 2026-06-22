@@ -14,4 +14,7 @@ public interface IFavoritesService
     Task<IReadOnlyList<Track>> GetFavoritesAsync(int limit = 500);
 
     Task ClearAllAsync();
+
+    /// <summary>Add to favorites if not already liked. Returns true if newly added.</summary>
+    Task<bool> EnsureFavoriteAsync(Track track);
 }

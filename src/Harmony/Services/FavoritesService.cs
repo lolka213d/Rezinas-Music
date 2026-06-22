@@ -54,6 +54,19 @@ public sealed class FavoritesService : IFavoritesService
             .ToListAsync();
     }
 
+    public async Task<bool> EnsureFavoriteAsync(Track track)
+    {
+        if (await IsFavoriteAsync(track.Source, track.SourceId))
+            return false;
+
+        await using var db = await _factory.CreateDbContextAsync();
+        var entity = await TrackPersistence.EnsureAsync(db, track);
+        db.Favorites.Add(new Favorite { TrackId = entity.Id });
+        await db.SaveChangesAsync();
+        _lookup.ApplyToggle(track, true);
+        return true;
+    }
+
     public async Task ClearAllAsync()
     {
         await using var db = await _factory.CreateDbContextAsync();

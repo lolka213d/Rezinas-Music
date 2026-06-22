@@ -186,7 +186,7 @@ public partial class HomeViewModel : ObservableObject
                 _allAlbums = [];
             }
 
-            ApplyTabContent();
+            ApplyTabContentAsync();
 
             _ = LoadGenreSectionsAsync(lang, token);
         }
@@ -219,7 +219,7 @@ public partial class HomeViewModel : ObservableObject
             _chartTracks = tracks;
             _allAlbums = await BuildAlbumsFromFavoritesAsync((await albumsTask).ToList(), _favoriteTracks);
             await _feedCache.SaveAsync(lang, _chartTracks, _allAlbums);
-            ApplyTabContent();
+            ApplyTabContentAsync();
 
             _ = LoadGenreSectionsAsync(lang, token);
 
@@ -249,7 +249,7 @@ public partial class HomeViewModel : ObservableObject
             if (albums.Count > 0)
                 _allAlbums = await BuildAlbumsFromFavoritesAsync(albums, _favoriteTracks);
 
-            ApplyTabContent();
+            ApplyTabContentAsync();
 
             _ = LoadGenreSectionsAsync(_settings.Current.Language, token);
         }
@@ -271,12 +271,12 @@ public partial class HomeViewModel : ObservableObject
             return;
         }
 
-        ApplyTabContent();
+        ApplyTabContentAsync();
     }
 
     partial void OnSelectedTabChanged(HomeTabChip? value)
     {
-        ApplyTabContent();
+        ApplyTabContentAsync();
         OnPropertyChanged(nameof(IsDiscoverTab));
         OnPropertyChanged(nameof(IsForYouTab));
     }
@@ -284,7 +284,9 @@ public partial class HomeViewModel : ObservableObject
     [RelayCommand]
     private void SelectTab(HomeTabChip tab) => SelectedTab = tab;
 
-    private void ApplyTabContent()
+    private void ApplyTabContentAsync() => _ = ApplyTabContentCoreAsync();
+
+    private async Task ApplyTabContentCoreAsync()
     {
         ChartSections.Clear();
         RecentSections.Clear();
@@ -320,7 +322,7 @@ public partial class HomeViewModel : ObservableObject
         OnPropertyChanged(nameof(HasBrowseShortcuts));
         _ = LoadRecommendedPlaylistsAsync();
 
-        UpdateDashboard();
+        await UpdateDashboardAsync();
     }
 
     private async Task LoadRecommendedPlaylistsAsync()
@@ -376,7 +378,7 @@ public partial class HomeViewModel : ObservableObject
         catch (OperationCanceledException) { }
     }
 
-    private void UpdateDashboard()
+    private async Task UpdateDashboardAsync()
     {
         FeaturedTrack = _player.CurrentTrack ?? _chartTracks.FirstOrDefault() ?? _recentTracks.FirstOrDefault();
         HasFeatured = FeaturedTrack != null;
@@ -387,7 +389,7 @@ public partial class HomeViewModel : ObservableObject
         HasRecentCards = RecentCards.Count > 0;
 
         BuildRecommendations();
-        BuildDailyMix();
+        await BuildDailyMixAsync();
         UpdateContinueListening();
     }
 
@@ -412,7 +414,7 @@ public partial class HomeViewModel : ObservableObject
         catch { /* optional */ }
     }
 
-    private void BuildDailyMix()
+    private async Task BuildDailyMixAsync()
     {
         var pool = _recentTracks
             .Concat(_favoriteTracks)
@@ -427,7 +429,7 @@ public partial class HomeViewModel : ObservableObject
         }
 
         var dayKey = RadioDailySeed.TodayKey;
-        var cached = _dailyMixCache.ReadAsync(dayKey).GetAwaiter().GetResult();
+        var cached = await _dailyMixCache.ReadAsync(dayKey).ConfigureAwait(false);
         List<Track> tracks;
         if (cached is { Tracks.Count: > 0 })
         {
@@ -436,7 +438,7 @@ public partial class HomeViewModel : ObservableObject
         else
         {
             tracks = RadioDailySeed.ShuffleForDay(pool, "daily-mix", dayKey).Take(24).ToList();
-            _dailyMixCache.SaveAsync(dayKey, tracks).GetAwaiter().GetResult();
+            await _dailyMixCache.SaveAsync(dayKey, tracks).ConfigureAwait(false);
         }
 
         DailyMix = new HomeMixCard

@@ -21,6 +21,7 @@ public partial class App : Application
     private ServiceProvider? _services;
     private MediaKeysService? _mediaKeys;
     private TrayIconService? _tray;
+    private SpotifySyncScheduler? _spotifySync;
     private bool _lastUiErrorShown;
     private DateTime _lastUiErrorUtc;
 
@@ -102,6 +103,8 @@ public partial class App : Application
         {
             _tray = _services.GetRequiredService<TrayIconService>();
             _tray.IsEnabled = settings.Current.MiniPlayerInTray;
+            _spotifySync = _services.GetRequiredService<SpotifySyncScheduler>();
+            _spotifySync.Start();
             _ = CheckForUpdatesOnStartupAsync();
         };
     }
@@ -161,6 +164,9 @@ public partial class App : Application
         services.AddSingleton<TrayIconService>();
         services.AddSingleton<UpdateCheckService>();
         services.AddSingleton<ListeningStatsService>();
+        services.AddSingleton<SpotifyAuthService>();
+        services.AddSingleton<SpotifyLibrarySyncService>();
+        services.AddSingleton<SpotifySyncScheduler>();
         services.AddSingleton<ILocalizationService, LocalizationService>();
         services.AddSingleton(sp => (LocalizationService)sp.GetRequiredService<ILocalizationService>());
 
@@ -205,6 +211,7 @@ public partial class App : Application
 
             _mediaKeys?.Dispose();
             _tray?.Dispose();
+            _spotifySync?.Dispose();
 
             var player = _services.GetRequiredService<PlayerViewModel>();
             player.PersistPlaybackState();

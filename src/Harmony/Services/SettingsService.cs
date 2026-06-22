@@ -44,6 +44,7 @@ public sealed class SettingsService : ISettingsService
         }
         Current = settings;
         BuiltInApiCredentials.Apply(Current);
+        SpotifyCredentials.ApplyBuiltIn(Current);
         return settings;
     }
 
@@ -59,6 +60,7 @@ public sealed class SettingsService : ISettingsService
 
         await db.SaveChangesAsync();
         BuiltInApiCredentials.Apply(settings);
+        SpotifyCredentials.ApplyBuiltIn(settings);
         Current = settings;
         SettingsChanged?.Invoke(this, EventArgs.Empty);
     }

@@ -56,7 +56,7 @@
         </Grid>
 
         <!-- ===== Spotify-style playlist detail ===== -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto"
+        <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalAlignment="Stretch"
                       Visibility="{Binding ShowPlaylistDetail, Converter={StaticResource BoolToVisibility}}">
             <StackPanel>
                 <Border MinHeight="280" Padding="28,24,28,24">
@@ -283,9 +283,10 @@
                                             </StackPanel>
 
                                             <Border Grid.Column="3" Background="#FF333333" CornerRadius="4" Padding="10,4"
-                                                    VerticalAlignment="Center" Margin="0,0,12,0">
-                                                <TextBlock Text="{Binding DataContext.TrackTypeLabel, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                           FontSize="12" FontWeight="SemiBold" />
+                                                    VerticalAlignment="Center" Margin="0,0,12,0"
+                                                    Visibility="{Binding Track.AlbumName, Converter={StaticResource NullToVisibility}}">
+                                                <TextBlock Text="{Binding Track.AlbumName}"
+                                                           FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="180" />
                                             </Border>
 
                                             <TextBlock Grid.Column="4" Text="{Binding AddedAtDisplay, FallbackValue=—}"

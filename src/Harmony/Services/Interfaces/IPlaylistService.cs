@@ -23,4 +23,10 @@ public interface IPlaylistService
 
     /// <summary>Tracks with position and added-at for playlist UI.</summary>
     Task<IReadOnlyList<PlaylistTrackEntry>> GetTrackEntriesAsync(int playlistId);
+
+    Task<Playlist?> FindByExternalAsync(MusicSource source, string externalSourceId);
+
+    Task<Playlist> GetOrCreateExternalAsync(MusicSource source, string externalSourceId, string name);
+
+    Task ReplaceTracksAsync(int playlistId, IReadOnlyList<Track> tracks);
 }

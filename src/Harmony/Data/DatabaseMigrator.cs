@@ -49,6 +49,23 @@ public static class DatabaseMigrator
         TryAddColumn(db, "UserSettings", "SyncFolderPath", "TEXT");
         TryAddColumn(db, "UserSettings", "LastSeenAppVersion", "TEXT");
 
+        TryAddColumn(db, "UserSettings", "YouTubeApiKey", "TEXT");
+        TryAddColumn(db, "UserSettings", "SpotifyClientId", "TEXT");
+        TryAddColumn(db, "UserSettings", "SpotifyClientSecret", "TEXT");
+        TryAddColumn(db, "UserSettings", "SpotifyRefreshToken", "TEXT");
+        TryAddColumn(db, "UserSettings", "SpotifyAccessToken", "TEXT");
+        TryAddColumn(db, "UserSettings", "SpotifyTokenExpiresUtc", "TEXT");
+        TryAddColumn(db, "UserSettings", "SpotifyUserId", "TEXT");
+        TryAddColumn(db, "UserSettings", "SpotifyDisplayName", "TEXT");
+        TryAddColumn(db, "UserSettings", "SpotifyConnectedAt", "TEXT");
+        TryAddColumn(db, "UserSettings", "SpotifyLastSyncUtc", "TEXT");
+        TryAddColumn(db, "UserSettings", "SpotifyAutoSyncEnabled", "INTEGER NOT NULL DEFAULT 0");
+        TryAddColumn(db, "UserSettings", "SpotifyAutoSyncIntervalHours", "INTEGER NOT NULL DEFAULT 24");
+        TryAddColumn(db, "UserSettings", "SoundCloudClientId", "TEXT");
+
+        TryAddColumn(db, "Playlists", "ExternalSource", "INTEGER");
+        TryAddColumn(db, "Playlists", "ExternalSourceId", "TEXT");
+
         db.Database.ExecuteSqlRaw("""
             CREATE TABLE IF NOT EXISTS AlbumTracks (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,

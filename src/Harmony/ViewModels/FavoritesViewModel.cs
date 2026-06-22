@@ -14,13 +14,20 @@ public partial class FavoritesViewModel : ObservableObject
     private readonly IFavoritesService _favorites;
     private readonly PlayerViewModel _player;
     private readonly ILocalizationService _loc;
+    private readonly ISettingsService _settings;
 
-    public FavoritesViewModel(IFavoritesService favorites, PlayerViewModel player, ILocalizationService localization)
+    public FavoritesViewModel(
+        IFavoritesService favorites,
+        PlayerViewModel player,
+        ILocalizationService localization,
+        ISettingsService settings)
     {
         _favorites = favorites;
         _player = player;
         _loc = localization;
+        _settings = settings;
         _loc.LanguageChanged += (_, _) => RefreshLabels();
+        _settings.SettingsChanged += (_, _) => _ = LoadAsync();
     }
 
     public ILocalizationService Loc => _loc;
@@ -65,6 +72,11 @@ public partial class FavoritesViewModel : ObservableObject
             Tracks.Add(t);
         TrackCount = Tracks.Count;
         IsEmpty = Tracks.Count == 0;
+        NotifyTrackListChanged();
+    }
+
+    private void NotifyTrackListChanged()
+    {
         OnPropertyChanged(nameof(HasTracks));
         OnPropertyChanged(nameof(ShowRecommendations));
     }

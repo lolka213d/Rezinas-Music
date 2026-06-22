@@ -11,6 +11,11 @@ public class Playlist
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>External provider link for synced playlists (e.g. Spotify).</summary>
+    public MusicSource? ExternalSource { get; set; }
+
+    public string? ExternalSourceId { get; set; }
+
     /// <summary>Ordered join rows linking this playlist to its tracks.</summary>
     public List<PlaylistTrack> Items { get; set; } = new();
 

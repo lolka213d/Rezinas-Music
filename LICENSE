@@ -1,16 +1,36 @@
-MIT License
+Rezinas Music — Personal Use License
 
-Copyright (c) 2026 lolka213d
+Copyright (c) 2026 lolka213d. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This software and associated documentation files (the "Software") are protected
+by copyright and related laws. The author retains all rights not expressly granted
+below.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+PERMITTED USE
+
+You may, for personal, non-commercial purposes only:
+
+  • obtain a copy of the Software;
+  • use and run the Software on your own devices;
+  • study the source code;
+  • copy and modify the Software to experiment, learn, or adapt it for your
+    own private use.
+
+RESTRICTIONS
+
+Without prior written permission from the copyright holder, you may NOT:
+
+  • sell the Software or any derivative work, in whole or in part;
+  • use the Software for any commercial purpose;
+  • distribute, publish, share, upload, or otherwise make the Software or any
+    derivative work available to third parties;
+  • sublicense, rent, lease, or lend the Software;
+  • redistribute modified or unmodified copies of the Software.
+
+If you received a copy of the Software, you must retain this license and the
+copyright notice in all copies you keep for personal use.
+
+NO WARRANTY
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -19,3 +39,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+For permissions beyond personal use (commercial licensing, redistribution, etc.),
+contact the copyright holder.

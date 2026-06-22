@@ -107,4 +107,58 @@ public sealed class PlaylistService : IPlaylistService
             })
             .ToListAsync();
     }
+
+    public async Task<Playlist?> FindByExternalAsync(MusicSource source, string externalSourceId)
+    {
+        await using var db = await _factory.CreateDbContextAsync();
+        return await db.Playlists.FirstOrDefaultAsync(p =>
+            p.ExternalSource == source && p.ExternalSourceId == externalSourceId);
+    }
+
+    public async Task<Playlist> GetOrCreateExternalAsync(MusicSource source, string externalSourceId, string name)
+    {
+        var existing = await FindByExternalAsync(source, externalSourceId);
+        if (existing != null)
+        {
+            if (!string.Equals(existing.Name, name, StringComparison.Ordinal))
+            {
+                await RenameAsync(existing.Id, name);
+                existing.Name = name;
+            }
+            return existing;
+        }
+
+        await using var db = await _factory.CreateDbContextAsync();
+        var playlist = new Playlist
+        {
+            Name = name,
+            ExternalSource = source,
+            ExternalSourceId = externalSourceId,
+            CreatedAt = DateTime.UtcNow
+        };
+        db.Playlists.Add(playlist);
+        await db.SaveChangesAsync();
+        return playlist;
+    }
+
+    public async Task ReplaceTracksAsync(int playlistId, IReadOnlyList<Track> tracks)
+    {
+        await using var db = await _factory.CreateDbContextAsync();
+        var existingItems = await db.PlaylistTracks.Where(pt => pt.PlaylistId == playlistId).ToListAsync();
+        db.PlaylistTracks.RemoveRange(existingItems);
+
+        var position = 0;
+        foreach (var track in tracks)
+        {
+            var entity = await TrackPersistence.EnsureAsync(db, track);
+            db.PlaylistTracks.Add(new PlaylistTrack
+            {
+                PlaylistId = playlistId,
+                TrackId = entity.Id,
+                Position = position++
+            });
+        }
+
+        await db.SaveChangesAsync();
+    }
 }

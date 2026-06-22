@@ -95,9 +95,9 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
-            await Player.RestoreLastPlaybackAsync();
+            _ = Player.RestoreLastPlaybackAsync();
             _ = _home.LoadAsync();
-            await Task.Delay(700);
+            await Task.Delay(500);
         }
         finally
         {

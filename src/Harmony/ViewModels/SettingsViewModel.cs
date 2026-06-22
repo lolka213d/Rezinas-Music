@@ -50,6 +50,8 @@ public partial class SettingsViewModel : ObservableObject
     private readonly ListeningStatsService _stats;
     private readonly UpdateCheckService _updates;
     private readonly LibraryBackupService _backup;
+    private readonly SpotifyAuthService _spotifyAuth;
+    private readonly SpotifyLibrarySyncService _spotifySync;
 
     private bool _isLoading;
 
@@ -74,7 +76,9 @@ public partial class SettingsViewModel : ObservableObject
         MediaKeysService mediaKeys,
         ListeningStatsService stats,
         UpdateCheckService updates,
-        LibraryBackupService backup)
+        LibraryBackupService backup,
+        SpotifyAuthService spotifyAuth,
+        SpotifyLibrarySyncService spotifySync)
 
     {
 
@@ -94,6 +98,8 @@ public partial class SettingsViewModel : ObservableObject
         _stats = stats;
         _updates = updates;
         _backup = backup;
+        _spotifyAuth = spotifyAuth;
+        _spotifySync = spotifySync;
 
         LogFilePath = log.LogFilePath;
 
@@ -130,6 +136,14 @@ public partial class SettingsViewModel : ObservableObject
         OnPropertyChanged(nameof(TabDataLabel));
         OnPropertyChanged(nameof(SupportTitle));
         OnPropertyChanged(nameof(SupportHint));
+        OnPropertyChanged(nameof(SpotifyConnectTitle));
+        OnPropertyChanged(nameof(SpotifyConnectHint));
+        OnPropertyChanged(nameof(SpotifyConnectButtonLabel));
+        OnPropertyChanged(nameof(SpotifyDisconnectLabel));
+        OnPropertyChanged(nameof(SpotifySyncNowLabel));
+        OnPropertyChanged(nameof(SpotifyAutoSyncLabel));
+        OnPropertyChanged(nameof(SpotifyAutoSyncIntervalLabel));
+        RefreshSpotifyStatus();
     }
 
 
@@ -276,6 +290,22 @@ public partial class SettingsViewModel : ObservableObject
     public string LastFmLabel => _loc.T("settings.lastFm");
     public string LastFmHint => _loc.T("settings.lastFmHint");
 
+    public string SpotifyConnectTitle => _loc.T("settings.spotifyConnect");
+    public string SpotifyConnectHint => _loc.T("settings.spotifyConnectHint");
+    public string SpotifyConnectButtonLabel => _loc.T("settings.spotifyConnectButton");
+    public string SpotifyDisconnectLabel => _loc.T("settings.spotifyDisconnect");
+    public string SpotifySyncNowLabel => _loc.T("settings.spotifySyncNow");
+    public string SpotifyAutoSyncLabel => _loc.T("settings.spotifyAutoSync");
+    public string SpotifyAutoSyncIntervalLabel => _loc.T("settings.spotifyAutoSyncInterval");
+
+    public int[] SpotifySyncIntervalOptions { get; } = [12, 24, 48];
+
+    [ObservableProperty] private bool _spotifyAutoSyncEnabled;
+    [ObservableProperty] private int _spotifyAutoSyncIntervalHours = 24;
+    [ObservableProperty] private bool _spotifyIsConnected;
+    [ObservableProperty] private string _spotifyStatusText = string.Empty;
+    [ObservableProperty] private bool _spotifyIsBusy;
+
     public string PersonalisationLabel => _loc.T("settings.personalisation");
     public string ContentLabel => _loc.T("settings.content");
     public string MusicPlaybackLabel => _loc.T("settings.musicPlayback");
@@ -372,6 +402,9 @@ public partial class SettingsViewModel : ObservableObject
         MiniPlayerWindowEnabled = s.MiniPlayerWindowEnabled;
         OfflineCacheLimitMb = s.OfflineCacheLimitMb;
         SyncFolderPath = s.SyncFolderPath;
+        SpotifyAutoSyncEnabled = s.SpotifyAutoSyncEnabled;
+        SpotifyAutoSyncIntervalHours = s.SpotifyAutoSyncIntervalHours is > 0 ? s.SpotifyAutoSyncIntervalHours : 24;
+        RefreshSpotifyStatus();
         StatusMessage = string.Empty;
         OnPropertyChanged(nameof(VolumePercent));
         _isLoading = false;
@@ -481,6 +514,8 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnLastFmApiKeyChanged(string? value) => ScheduleAutoSave();
     partial void OnLastFmApiSecretChanged(string? value) => ScheduleAutoSave();
     partial void OnLastFmSessionKeyChanged(string? value) => ScheduleAutoSave();
+    partial void OnSpotifyAutoSyncEnabledChanged(bool value) => ScheduleAutoSave();
+    partial void OnSpotifyAutoSyncIntervalHoursChanged(int value) => ScheduleAutoSave();
     partial void OnEqBand60Changed(double value) => ScheduleAutoSave();
     partial void OnEqBand250Changed(double value) => ScheduleAutoSave();
     partial void OnEqBand1kChanged(double value) => ScheduleAutoSave();
@@ -600,6 +635,8 @@ public partial class SettingsViewModel : ObservableObject
         s.MiniPlayerWindowEnabled = MiniPlayerWindowEnabled;
         s.OfflineCacheLimitMb = Math.Max(0, OfflineCacheLimitMb);
         s.SyncFolderPath = SyncFolderPath;
+        s.SpotifyAutoSyncEnabled = SpotifyAutoSyncEnabled;
+        s.SpotifyAutoSyncIntervalHours = Math.Clamp(SpotifyAutoSyncIntervalHours, 1, 168);
 
         await _settings.SaveAsync(s);
 
@@ -845,6 +882,104 @@ public partial class SettingsViewModel : ObservableObject
         using var dialog = new System.Windows.Forms.FolderBrowserDialog();
         if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             SyncFolderPath = dialog.SelectedPath;
+    }
+
+    private void RefreshSpotifyStatus()
+    {
+        var s = _settings.Current;
+        SpotifyIsConnected = _spotifyAuth.IsConnected;
+        if (SpotifyIsConnected)
+        {
+            var name = s.SpotifyDisplayName ?? s.SpotifyUserId ?? "Spotify";
+            SpotifyStatusText = string.Format(_loc.T("settings.spotifyConnectedAs"), name);
+            if (s.SpotifyLastSyncUtc.HasValue)
+            {
+                var local = s.SpotifyLastSyncUtc.Value.ToLocalTime().ToString("g");
+                SpotifyStatusText += " · " + string.Format(_loc.T("settings.spotifyLastSync"), local);
+            }
+            else
+            {
+                SpotifyStatusText += " · " + _loc.T("settings.spotifyNeverSynced");
+            }
+        }
+        else
+        {
+            SpotifyStatusText = _loc.T("settings.spotifyNotConnected");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ConnectSpotifyAsync()
+    {
+        if (SpotifyIsBusy) return;
+        SpotifyIsBusy = true;
+        StatusMessage = string.Empty;
+        try
+        {
+            var (success, message) = await _spotifyAuth.ConnectAsync();
+            StatusMessage = message;
+            RefreshSpotifyStatus();
+            if (success)
+            {
+                var result = await _spotifySync.SyncAsync();
+                RefreshSpotifyStatus();
+                if (result.Error == null)
+                    StatusMessage = string.Format(_loc.T("settings.spotifySyncDone"), result.PlaylistsSynced, result.TracksImported, result.LikedImported);
+                else
+                    StatusMessage = result.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            _log.Error("Spotify connect failed", ex);
+            StatusMessage = ex.Message;
+        }
+        finally
+        {
+            SpotifyIsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectSpotifyAsync()
+    {
+        if (SpotifyIsBusy) return;
+        SpotifyIsBusy = true;
+        try
+        {
+            await _spotifyAuth.DisconnectAsync();
+            SpotifyAutoSyncEnabled = false;
+            await ApplyAndSaveAsync();
+            RefreshSpotifyStatus();
+            StatusMessage = _loc.T("settings.spotifyDisconnected");
+        }
+        finally
+        {
+            SpotifyIsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task SyncSpotifyNowAsync()
+    {
+        if (SpotifyIsBusy || !SpotifyIsConnected) return;
+        SpotifyIsBusy = true;
+        StatusMessage = _loc.T("settings.spotifySyncing");
+        try
+        {
+            var result = await _spotifySync.SyncAsync();
+            RefreshSpotifyStatus();
+            StatusMessage = result.Error ?? string.Format(_loc.T("settings.spotifySyncDone"), result.PlaylistsSynced, result.TracksImported, result.LikedImported);
+        }
+        catch (Exception ex)
+        {
+            _log.Error("Spotify sync failed", ex);
+            StatusMessage = ex.Message;
+        }
+        finally
+        {
+            SpotifyIsBusy = false;
+        }
     }
 
 }

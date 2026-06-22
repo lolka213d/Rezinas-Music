@@ -118,6 +118,16 @@ public class UserSettings
 
     public string? SpotifyClientSecret { get; set; }
 
+    public string? SpotifyRefreshToken { get; set; }
+    public string? SpotifyAccessToken { get; set; }
+    public DateTime? SpotifyTokenExpiresUtc { get; set; }
+    public string? SpotifyUserId { get; set; }
+    public string? SpotifyDisplayName { get; set; }
+    public DateTime? SpotifyConnectedAt { get; set; }
+    public DateTime? SpotifyLastSyncUtc { get; set; }
+    public bool SpotifyAutoSyncEnabled { get; set; }
+    public int SpotifyAutoSyncIntervalHours { get; set; } = 24;
+
     public string? SoundCloudClientId { get; set; }
 
     /// <summary>Check GitHub releases on startup.</summary>
