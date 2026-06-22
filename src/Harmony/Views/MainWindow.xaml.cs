@@ -47,6 +47,7 @@ public partial class MainWindow : Window
         InputBindings.Add(new KeyBinding { Key = Key.MediaStop, Command = PlayerStopCommand });
         InputBindings.Add(new KeyBinding { Key = Key.Right, Modifiers = ModifierKeys.Control, Command = PlayerNextCommand });
         InputBindings.Add(new KeyBinding { Key = Key.L, Modifiers = ModifierKeys.Control, Command = GoSearchCommand });
+        InputBindings.Add(new KeyBinding { Key = Key.OemQuestion, Modifiers = ModifierKeys.Shift, Command = ShowHotkeysCommand });
         InputBindings.Add(new KeyBinding { Key = Key.Left, Command = PlayerPrevCommand });
         SourceInitialized += OnSourceInitialized;
         ContentRendered += OnContentRendered;
@@ -121,11 +122,31 @@ public partial class MainWindow : Window
     public ICommand PlayerNextCommand => new RelayCommand(_ => Vm?.Player.NextCommand.Execute(null));
     public ICommand PlayerPrevCommand => new RelayCommand(_ => Vm?.Player.PreviousCommand.Execute(null));
     public ICommand PlayerStopCommand => new RelayCommand(_ => Vm?.Player.StopCommand.Execute(null));
+    private MiniPlayerWindow? _miniPlayer;
+
     public ICommand GoSearchCommand => new RelayCommand(_ =>
     {
         if (Vm?.NavigationItems.FirstOrDefault(n => n.Page == AppPage.Search) is { } item)
             Vm.SelectedNavigation = item;
     });
+
+    public ICommand ShowHotkeysCommand => new RelayCommand(_ =>
+    {
+        if (Vm == null) return;
+        HotkeysOverlayWindow.ShowForOwner(this, Vm.Settings.HotkeysHint);
+    });
+
+    public void ShowMiniPlayer(bool show)
+    {
+        if (show)
+        {
+            _miniPlayer ??= new MiniPlayerWindow(Vm!);
+            _miniPlayer.Show();
+            return;
+        }
+        _miniPlayer?.Close();
+        _miniPlayer = null;
+    }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {

@@ -97,6 +97,12 @@
                                             <Path Data="{StaticResource IconHistory}" Fill="{StaticResource TextSecondaryBrush}"
                                                   Stretch="Uniform" Width="20" Height="20"
                                                   Visibility="{Binding IsRecent, Converter={StaticResource BoolToVisibility}}" />
+                                            <Path Data="{StaticResource IconRadio}" Fill="{StaticResource TextSecondaryBrush}"
+                                                  Stretch="Uniform" Width="20" Height="20"
+                                                  Visibility="{Binding IsRadio, Converter={StaticResource BoolToVisibility}}" />
+                                            <Path Data="{StaticResource IconLibrary}" Fill="{StaticResource TextSecondaryBrush}"
+                                                  Stretch="Uniform" Width="20" Height="20"
+                                                  Visibility="{Binding IsLibrary, Converter={StaticResource BoolToVisibility}}" />
                                             <Path Data="{StaticResource IconAlbum}" Fill="{StaticResource TextSecondaryBrush}"
                                                   Stretch="Uniform" Width="20" Height="20"
                                                   Visibility="{Binding IsAlbums, Converter={StaticResource BoolToVisibility}}" />

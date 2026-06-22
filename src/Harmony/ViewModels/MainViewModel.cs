@@ -106,6 +106,7 @@ public partial class MainViewModel : ObservableObject
     }
 
     public PlayerViewModel Player { get; }
+    public SettingsViewModel Settings => _settings;
     public LyricsViewModel Lyrics { get; }
     public NowPlayingViewModel NowPlaying { get; }
     public ObservableCollection<NavigationItem> NavigationItems { get; }

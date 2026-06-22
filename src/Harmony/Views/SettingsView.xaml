@@ -201,6 +201,22 @@
                                 <ComboBox Grid.Column="1" ItemsSource="{Binding SleepTimerOptions}"
                                           SelectedItem="{Binding SleepTimerMinutes}" Width="120" />
                             </Grid>
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding GaplessLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                <CheckBox Grid.Column="1" Style="{StaticResource GlassToggle}" IsChecked="{Binding GaplessPlayback}" />
+                            </Grid>
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="120" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding OfflineCacheLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="1" Text="{Binding OfflineCacheLimitMb, UpdateSourceTrigger=PropertyChanged}" />
+                            </Grid>
                         </StackPanel>
 
                         <!-- Interface -->
@@ -235,6 +251,30 @@
                             </Grid>
                             <TextBlock Text="{Binding HotkeysLabel}" FontWeight="SemiBold" />
                             <TextBlock Text="{Binding HotkeysHint}" Style="{StaticResource Muted}" FontSize="12" Margin="0,6,0,16" TextWrapping="Wrap" />
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding StartWithWindowsLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                <CheckBox Grid.Column="1" Style="{StaticResource GlassToggle}" IsChecked="{Binding StartWithWindows}" />
+                            </Grid>
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding DiscordPresenceLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                <CheckBox Grid.Column="1" Style="{StaticResource GlassToggle}" IsChecked="{Binding DiscordPresenceEnabled}" />
+                            </Grid>
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding MiniPlayerWindowLabel}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                <CheckBox Grid.Column="1" Style="{StaticResource GlassToggle}" IsChecked="{Binding MiniPlayerWindowEnabled}" />
+                            </Grid>
                             <Grid Margin="0,0,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -272,7 +312,26 @@
                                            VerticalAlignment="Center" Margin="14,0,0,0" />
                             </StackPanel>
                             <TextBlock Text="{Binding StatsTitle}" FontWeight="SemiBold" Margin="0,0,0,6" />
-                            <TextBlock Text="{Binding StatsSummary}" Style="{StaticResource Muted}" Margin="0,0,0,20" TextWrapping="Wrap" />
+                            <ComboBox ItemsSource="{Binding StatsPeriods}" SelectedItem="{Binding StatsPeriod}"
+                                      Width="160" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                            <TextBlock Text="{Binding StatsSummary}" Style="{StaticResource Muted}" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding StatsDetail}" Style="{StaticResource Muted}" Margin="0,4,0,20" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding BackupLabel}" FontWeight="SemiBold" Margin="0,0,0,10" />
+                            <WrapPanel Margin="0,0,0,12">
+                                <Button Style="{StaticResource OutlineButton}" Content="{Binding ExportPlaylistsLabel}"
+                                        Command="{Binding ExportPlaylistsCommand}" Margin="0,0,10,10" Padding="14,8" />
+                                <Button Style="{StaticResource OutlineButton}" Content="{Binding ImportPlaylistsLabel}"
+                                        Command="{Binding ImportPlaylistsCommand}" Margin="0,0,10,10" Padding="14,8" />
+                                <Button Style="{StaticResource OutlineButton}" Content="{Binding CreateBackupLabel}"
+                                        Command="{Binding CreateBackupCommand}" Margin="0,0,10,10" Padding="14,8" />
+                                <Button Style="{StaticResource OutlineButton}" Content="{Binding RestoreBackupLabel}"
+                                        Command="{Binding RestoreBackupCommand}" Margin="0,0,10,10" Padding="14,8" />
+                            </WrapPanel>
+                            <TextBlock Text="{Binding SyncFolderLabel}" Style="{StaticResource Muted}" Margin="0,0,0,6" />
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                <TextBox Text="{Binding SyncFolderPath, UpdateSourceTrigger=PropertyChanged}" Width="320" Margin="0,0,8,0" />
+                                <Button Style="{StaticResource OutlineButton}" Content="…" Command="{Binding PickSyncFolderCommand}" Padding="12,8" />
+                            </StackPanel>
                             <TextBlock Text="{Binding SupportTitle}" FontWeight="Bold" FontSize="18" Margin="0,0,0,8" />
                             <TextBlock Text="{Binding SupportHint}" Style="{StaticResource Muted}" TextWrapping="Wrap"
                                        Margin="0,0,0,14" MaxWidth="520" />

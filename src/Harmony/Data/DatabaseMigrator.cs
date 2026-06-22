@@ -41,6 +41,13 @@ public static class DatabaseMigrator
         TryAddColumn(db, "UserSettings", "LastPlayedSourceId", "TEXT");
         TryAddColumn(db, "UserSettings", "LastPlayedPositionSeconds", "REAL NOT NULL DEFAULT 0");
         TryAddColumn(db, "UserSettings", "InstalledAt", "TEXT");
+        TryAddColumn(db, "UserSettings", "StartWithWindows", "INTEGER NOT NULL DEFAULT 0");
+        TryAddColumn(db, "UserSettings", "DiscordPresenceEnabled", "INTEGER NOT NULL DEFAULT 0");
+        TryAddColumn(db, "UserSettings", "GaplessPlayback", "INTEGER NOT NULL DEFAULT 0");
+        TryAddColumn(db, "UserSettings", "MiniPlayerWindowEnabled", "INTEGER NOT NULL DEFAULT 0");
+        TryAddColumn(db, "UserSettings", "OfflineCacheLimitMb", "INTEGER NOT NULL DEFAULT 512");
+        TryAddColumn(db, "UserSettings", "SyncFolderPath", "TEXT");
+        TryAddColumn(db, "UserSettings", "LastSeenAppVersion", "TEXT");
 
         db.Database.ExecuteSqlRaw("""
             CREATE TABLE IF NOT EXISTS AlbumTracks (

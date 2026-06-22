@@ -6,8 +6,13 @@ namespace Harmony.Services;
 public sealed class RadioPlaybackContext
 {
     public RadioStation? ActiveStation { get; set; }
+    public int ExtendBatch { get; private set; }
 
     public event Action<IReadOnlyList<Track>>? TracksAppended;
+
+    public void ResetDailyExtension() => ExtendBatch = 0;
+
+    public int NextExtendBatch() => ++ExtendBatch;
 
     public void NotifyTracksAppended(IReadOnlyList<Track> tracks)
     {

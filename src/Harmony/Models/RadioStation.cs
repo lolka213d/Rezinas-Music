@@ -2,6 +2,7 @@ namespace Harmony.Models;
 
 public enum RadioStationKind
 {
+    Personal,
     Playlist,
     Genre
 }

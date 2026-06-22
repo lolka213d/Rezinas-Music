@@ -25,6 +25,8 @@ public partial class HomeViewModel : ObservableObject
     private readonly ISettingsService _settings;
     private readonly ILocalizationService _loc;
     private readonly HomeFeedCache _feedCache;
+    private readonly DailyMixCache _dailyMixCache;
+    private readonly SmartPlaylistService _smartPlaylists;
 
     private List<Track> _chartTracks = new();
     private List<Track> _recentTracks = new();
@@ -43,7 +45,9 @@ public partial class HomeViewModel : ObservableObject
         NavigationService navigation,
         ISettingsService settings,
         ILocalizationService localization,
-        HomeFeedCache feedCache)
+        HomeFeedCache feedCache,
+        DailyMixCache dailyMixCache,
+        SmartPlaylistService smartPlaylists)
     {
         _deezerHome = deezerHome;
         _sample = sample;
@@ -56,6 +60,8 @@ public partial class HomeViewModel : ObservableObject
         _settings = settings;
         _loc = localization;
         _feedCache = feedCache;
+        _dailyMixCache = dailyMixCache;
+        _smartPlaylists = smartPlaylists;
         _player.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName is nameof(PlayerViewModel.CurrentTrack) or nameof(PlayerViewModel.PositionSeconds)
@@ -293,6 +299,7 @@ public partial class HomeViewModel : ObservableObject
                 BuildTrackSections(RecentSections, _recentTracks, _loc.T("nav.history"));
                 BuildTrackSections(FavoriteSections, _favoriteTracks, _loc.T("nav.favorites"));
                 BuildRecommendations();
+                _ = LoadSmartPlaylistsAsync();
                 break;
             default:
                 BuildTrackSections(ChartSections, _chartTracks.Take(50).ToList(), _loc.T("home.trending"));
@@ -384,6 +391,27 @@ public partial class HomeViewModel : ObservableObject
         UpdateContinueListening();
     }
 
+    private async Task LoadSmartPlaylistsAsync()
+    {
+        try
+        {
+            foreach (var smart in await _smartPlaylists.BuildAsync())
+            {
+                if (smart.Tracks.Count < 3) continue;
+                RecommendationMixes.Add(new HomeMixCard
+                {
+                    Title = _loc.T(smart.TitleKey),
+                    Subtitle = _loc.T(smart.SubtitleKey),
+                    SeedTrack = smart.Tracks[0],
+                    Tracks = smart.Tracks.ToList(),
+                    AccentColor = "#6366F1"
+                });
+            }
+            HasRecommendations = RecommendationMixes.Count > 0;
+        }
+        catch { /* optional */ }
+    }
+
     private void BuildDailyMix()
     {
         var pool = _recentTracks
@@ -398,13 +426,25 @@ public partial class HomeViewModel : ObservableObject
             return;
         }
 
-        var shuffled = pool.OrderBy(_ => Random.Shared.Next()).Take(24).ToList();
+        var dayKey = RadioDailySeed.TodayKey;
+        var cached = _dailyMixCache.ReadAsync(dayKey).GetAwaiter().GetResult();
+        List<Track> tracks;
+        if (cached is { Tracks.Count: > 0 })
+        {
+            tracks = cached.Tracks;
+        }
+        else
+        {
+            tracks = RadioDailySeed.ShuffleForDay(pool, "daily-mix", dayKey).Take(24).ToList();
+            _dailyMixCache.SaveAsync(dayKey, tracks).GetAwaiter().GetResult();
+        }
+
         DailyMix = new HomeMixCard
         {
             Title = _loc.T("home.dailyMix"),
-            Subtitle = $"{shuffled.Count} tracks",
-            SeedTrack = shuffled[0],
-            Tracks = shuffled,
+            Subtitle = string.Format(_loc.T("home.dailyMixTracks"), tracks.Count),
+            SeedTrack = tracks[0],
+            Tracks = tracks,
             AccentColor = "#8B5CF6"
         };
         HasDailyMix = true;
@@ -442,19 +482,19 @@ public partial class HomeViewModel : ObservableObject
 
         var mixes = new[]
         {
-            ("Chill session", "Relax & unwind", "#7C3AED", 0),
-            ("Code focus", "Deep work beats", "#38BDF8", 5),
-            ("Night drive", "Late night vibes", "#22C55E", 10),
+            ("home.mixChill", "home.mixChillSub", "#7C3AED", 0),
+            ("home.mixFocus", "home.mixFocusSub", "#38BDF8", 5),
+            ("home.mixNight", "home.mixNightSub", "#22C55E", 10),
         };
 
-        foreach (var (title, subtitle, color, offset) in mixes)
+        foreach (var (titleKey, subtitleKey, color, offset) in mixes)
         {
             if (offset + 5 > _chartTracks.Count) continue;
             var chunk = _chartTracks.Skip(offset).Take(20).ToList();
             RecommendationMixes.Add(new HomeMixCard
             {
-                Title = title,
-                Subtitle = subtitle,
+                Title = _loc.T(titleKey),
+                Subtitle = _loc.T(subtitleKey),
                 SeedTrack = chunk[0],
                 Tracks = chunk,
                 AccentColor = color

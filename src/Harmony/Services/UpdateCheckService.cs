@@ -70,7 +70,8 @@ public sealed class UpdateCheckService
             if (!TryParseVersion(latest, out var latestV) || !TryParseVersion(current, out var currentV))
                 return null;
 
-            var download = release.HtmlUrl
+            var download = PickInstallerAsset(release.Assets)
+                ?? release.HtmlUrl
                 ?? $"https://github.com/{AppBranding.GitHubOwner}/{AppBranding.GitHubRepo}/releases/latest";
 
             return new UpdateCheckResult
@@ -142,6 +143,17 @@ public sealed class UpdateCheckService
         return false;
     }
 
+    private static string? PickInstallerAsset(IReadOnlyList<GitHubAssetDto>? assets)
+    {
+        if (assets == null || assets.Count == 0) return null;
+        return assets
+            .FirstOrDefault(a => a.Name?.Contains("Setup", StringComparison.OrdinalIgnoreCase) == true
+                                 && a.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+            ?.BrowserDownloadUrl
+            ?? assets.FirstOrDefault(a => a.Name?.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) == true)
+                ?.BrowserDownloadUrl;
+    }
+
     private static string? TrimNotes(string? body)
     {
         if (string.IsNullOrWhiteSpace(body)) return null;
@@ -185,5 +197,17 @@ public sealed class UpdateCheckService
 
         [JsonPropertyName("body")]
         public string? Body { get; set; }
+
+        [JsonPropertyName("assets")]
+        public List<GitHubAssetDto>? Assets { get; set; }
+    }
+
+    private sealed class GitHubAssetDto
+    {
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+
+        [JsonPropertyName("browser_download_url")]
+        public string? BrowserDownloadUrl { get; set; }
     }
 }

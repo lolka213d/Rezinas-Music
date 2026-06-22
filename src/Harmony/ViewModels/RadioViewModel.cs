@@ -39,20 +39,28 @@ public partial class RadioViewModel : ObservableObject
     private readonly DeezerHomeService _deezer;
     private readonly PlayerViewModel _player;
     private readonly RadioPlaybackContext _radioContext;
+    private readonly RadioStationCache _stationCache;
+    private readonly PersonalWaveService _personalWave;
     private readonly ISettingsService _settings;
     private readonly ILocalizationService _loc;
     private List<Track> _stationTracks = new();
+    private int _loadedDayKey;
+    private string? _loadedStationId;
 
     public RadioViewModel(
         DeezerHomeService deezer,
         PlayerViewModel player,
         RadioPlaybackContext radioContext,
+        RadioStationCache stationCache,
+        PersonalWaveService personalWave,
         ISettingsService settings,
         ILocalizationService localization)
     {
         _deezer = deezer;
         _player = player;
         _radioContext = radioContext;
+        _stationCache = stationCache;
+        _personalWave = personalWave;
         _settings = settings;
         _loc = localization;
         _loc.LanguageChanged += (_, _) => RefreshLabels();
@@ -90,11 +98,24 @@ public partial class RadioViewModel : ObservableObject
 
     public Task InitializeAsync()
     {
-        if (SelectedStation != null) return Task.CompletedTask;
-        var defaultStation = RadioStationCatalog.DefaultForLanguage(_settings.Current.Language);
-        SelectedStation = Stations.FirstOrDefault(s => s.Id == defaultStation.Id) ?? Stations.FirstOrDefault();
+        if (SelectedStation == null)
+        {
+            var defaultStation = RadioStationCatalog.DefaultForLanguage(_settings.Current.Language);
+            SelectedStation = Stations.FirstOrDefault(s => s.Id == defaultStation.Id) ?? Stations.FirstOrDefault();
+            return Task.CompletedTask;
+        }
+
+        if (NeedsReload())
+            _ = LoadStationAsync(SelectedStation);
+
         return Task.CompletedTask;
     }
+
+    private bool NeedsReload() =>
+        SelectedStation != null &&
+        (_loadedDayKey != RadioDailySeed.TodayKey
+         || !string.Equals(_loadedStationId, SelectedStation.Id, StringComparison.Ordinal)
+         || _stationTracks.Count == 0);
 
     partial void OnSelectedStationChanged(RadioStationItem? value)
     {
@@ -154,10 +175,29 @@ public partial class RadioViewModel : ObservableObject
 
         try
         {
-            var tracks = await _deezer.GetRadioStationTracksAsync(item.Station, 40);
-            _stationTracks = tracks.ToList();
+            var dayKey = RadioDailySeed.TodayKey;
+            var cached = await _stationCache.ReadAsync(item.Station.Id, dayKey);
+            if (cached is { Tracks.Count: > 0 })
+            {
+                ApplyStationTracks(cached.Tracks, item.Station.Id, dayKey);
+                return;
+            }
+
+            var rng = RadioDailySeed.CreateRandom(item.Station.Id, dayKey);
+            var startIndex = rng.Next(0, 36);
+            IReadOnlyList<Track> fetched = item.Station.Kind == RadioStationKind.Personal
+                ? await _personalWave.GetDailyTracksAsync(40)
+                : await _deezer.GetRadioStationTracksAsync(item.Station, 40, startIndex);
+            _stationTracks = item.Station.Kind == RadioStationKind.Personal
+                ? fetched.ToList()
+                : RadioDailySeed.ShuffleForDay(fetched, item.Station.Id, dayKey);
+            await _stationCache.SaveAsync(item.Station.Id, dayKey, startIndex, _stationTracks);
+
             foreach (var track in _stationTracks)
                 Tracks.Add(track);
+
+            _loadedDayKey = dayKey;
+            _loadedStationId = item.Station.Id;
 
             StatusMessage = _stationTracks.Count > 0
                 ? string.Format(_loc.T("radio.tracksReady"), _stationTracks.Count)
@@ -175,6 +215,21 @@ public partial class RadioViewModel : ObservableObject
             OnPropertyChanged(nameof(IsEmpty));
             OnPropertyChanged(nameof(CanPlay));
         }
+    }
+
+    private void ApplyStationTracks(IReadOnlyList<Track> tracks, string stationId, int dayKey)
+    {
+        _stationTracks = tracks.ToList();
+        foreach (var track in _stationTracks)
+            Tracks.Add(track);
+
+        _loadedDayKey = dayKey;
+        _loadedStationId = stationId;
+
+        StatusMessage = _stationTracks.Count > 0
+            ? string.Format(_loc.T("radio.tracksReady"), _stationTracks.Count)
+            : EmptyLabel;
+        UpdateNowPlayingStatus();
     }
 
     private void OnTracksAppended(IReadOnlyList<Track> tracks)

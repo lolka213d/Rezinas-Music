@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Reflection;
 
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 using CommunityToolkit.Mvvm.Input;
@@ -48,6 +49,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly MediaKeysService _mediaKeys;
     private readonly ListeningStatsService _stats;
     private readonly UpdateCheckService _updates;
+    private readonly LibraryBackupService _backup;
 
     private bool _isLoading;
 
@@ -71,7 +73,8 @@ public partial class SettingsViewModel : ObservableObject
 
         MediaKeysService mediaKeys,
         ListeningStatsService stats,
-        UpdateCheckService updates)
+        UpdateCheckService updates,
+        LibraryBackupService backup)
 
     {
 
@@ -90,6 +93,7 @@ public partial class SettingsViewModel : ObservableObject
         _mediaKeys = mediaKeys;
         _stats = stats;
         _updates = updates;
+        _backup = backup;
 
         LogFilePath = log.LogFilePath;
 
@@ -186,6 +190,27 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty] private bool _checkForUpdates = true;
     [ObservableProperty] private string _updateStatusMessage = string.Empty;
+
+    [ObservableProperty] private bool _startWithWindows;
+    [ObservableProperty] private bool _discordPresenceEnabled;
+    [ObservableProperty] private bool _gaplessPlayback;
+    [ObservableProperty] private bool _miniPlayerWindowEnabled;
+    [ObservableProperty] private int _offlineCacheLimitMb = 512;
+    [ObservableProperty] private string? _syncFolderPath;
+    [ObservableProperty] private StatsPeriod _statsPeriod = StatsPeriod.Week;
+    [ObservableProperty] private string _statsDetail = string.Empty;
+
+    public StatsPeriod[] StatsPeriods { get; } = Enum.GetValues<StatsPeriod>();
+    public string StartWithWindowsLabel => _loc.T("settings.startWithWindows");
+    public string DiscordPresenceLabel => _loc.T("settings.discordPresence");
+    public string GaplessLabel => _loc.T("settings.gapless");
+    public string MiniPlayerWindowLabel => _loc.T("settings.miniPlayerWindow");
+    public string OfflineCacheLabel => _loc.T("settings.offlineCache");
+    public string ExportPlaylistsLabel => _loc.T("settings.exportPlaylists");
+    public string ImportPlaylistsLabel => _loc.T("settings.importPlaylists");
+    public string CreateBackupLabel => _loc.T("settings.createBackup");
+    public string RestoreBackupLabel => _loc.T("settings.restoreBackup");
+    public string SyncFolderLabel => _loc.T("settings.syncFolder");
 
     [ObservableProperty] private SettingsTab _selectedTab = SettingsTab.Profile;
 
@@ -341,6 +366,12 @@ public partial class SettingsViewModel : ObservableObject
         EqBand4k = s.EqBand4k;
         EqBand12k = s.EqBand12k;
         CheckForUpdates = s.CheckForUpdates;
+        StartWithWindows = s.StartWithWindows;
+        DiscordPresenceEnabled = s.DiscordPresenceEnabled;
+        GaplessPlayback = s.GaplessPlayback;
+        MiniPlayerWindowEnabled = s.MiniPlayerWindowEnabled;
+        OfflineCacheLimitMb = s.OfflineCacheLimitMb;
+        SyncFolderPath = s.SyncFolderPath;
         StatusMessage = string.Empty;
         OnPropertyChanged(nameof(VolumePercent));
         _isLoading = false;
@@ -351,10 +382,14 @@ public partial class SettingsViewModel : ObservableObject
     {
         try
         {
-            var stats = await _stats.GetWeeklyAsync();
+            var stats = await _stats.GetAsync(StatsPeriod);
             var hours = stats.TotalSeconds / 3600.0;
-            var top = stats.TopArtists.FirstOrDefault()?.ArtistName ?? "—";
-            StatsSummary = $"{stats.PlayCount} plays · {hours:0.#} h · top: {top}";
+            var topArtist = stats.TopArtists.FirstOrDefault()?.ArtistName ?? "—";
+            var topTrack = stats.TopTracks.FirstOrDefault();
+            StatsSummary = $"{stats.PlayCount} plays · {hours:0.#} h · top: {topArtist}";
+            StatsDetail = topTrack == null
+                ? string.Empty
+                : $"Top track: {topTrack.ArtistName} — {topTrack.Title} ({topTrack.PlayCount}×)";
         }
         catch (Exception ex)
         {
@@ -422,6 +457,23 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnCompactTrackListsChanged(bool value) => ScheduleAutoSave();
 
     partial void OnCheckForUpdatesChanged(bool value) => ScheduleAutoSave();
+    partial void OnStartWithWindowsChanged(bool value)
+    {
+        if (!_isLoading)
+            WindowsStartupService.SetEnabled(value);
+        ScheduleAutoSave();
+    }
+    partial void OnDiscordPresenceEnabledChanged(bool value) => ScheduleAutoSave();
+    partial void OnGaplessPlaybackChanged(bool value) => ScheduleAutoSave();
+    partial void OnMiniPlayerWindowEnabledChanged(bool value)
+    {
+        if (!_isLoading && Application.Current.MainWindow is Views.MainWindow mw)
+            mw.ShowMiniPlayer(value);
+        ScheduleAutoSave();
+    }
+    partial void OnOfflineCacheLimitMbChanged(int value) => ScheduleAutoSave();
+    partial void OnSyncFolderPathChanged(string? value) => ScheduleAutoSave();
+    partial void OnStatsPeriodChanged(StatsPeriod value) => _ = LoadStatsAsync();
 
     partial void OnLyricsOffsetSecondsChanged(double value) => ScheduleAutoSave();
 
@@ -542,8 +594,20 @@ public partial class SettingsViewModel : ObservableObject
         s.EqBand4k = Math.Clamp(EqBand4k, -12, 12);
         s.EqBand12k = Math.Clamp(EqBand12k, -12, 12);
         s.CheckForUpdates = CheckForUpdates;
+        s.StartWithWindows = StartWithWindows;
+        s.DiscordPresenceEnabled = DiscordPresenceEnabled;
+        s.GaplessPlayback = GaplessPlayback;
+        s.MiniPlayerWindowEnabled = MiniPlayerWindowEnabled;
+        s.OfflineCacheLimitMb = Math.Max(0, OfflineCacheLimitMb);
+        s.SyncFolderPath = SyncFolderPath;
 
         await _settings.SaveAsync(s);
+
+        if (StartWithWindows != WindowsStartupService.IsEnabled())
+            WindowsStartupService.SetEnabled(StartWithWindows);
+
+        if (!string.IsNullOrWhiteSpace(SyncFolderPath))
+            _ = _backup.ExportSyncSnapshotAsync(SyncFolderPath);
 
         _player.Volume = s.Volume;
         ThemeService.Apply(s.Theme);
@@ -728,6 +792,59 @@ public partial class SettingsViewModel : ObservableObject
         UpdateStatusMessage = _loc.T("update.checking");
         var prompted = await _updates.CheckAndPromptAsync(force: true);
         UpdateStatusMessage = prompted ? string.Empty : _loc.T("update.none");
+    }
+
+    [RelayCommand]
+    private async Task ExportPlaylists()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Filter = "JSON|*.json",
+            FileName = "rezinas-playlists.json"
+        };
+        if (dialog.ShowDialog() != true) return;
+        await _backup.ExportPlaylistsJsonAsync(dialog.FileName);
+        StatusMessage = _loc.T("status.settingsSaved");
+    }
+
+    [RelayCommand]
+    private async Task ImportPlaylists()
+    {
+        var dialog = new OpenFileDialog { Filter = "JSON|*.json" };
+        if (dialog.ShowDialog() != true) return;
+        var count = await _backup.ImportPlaylistsJsonAsync(dialog.FileName);
+        StatusMessage = $"{count} playlists imported";
+    }
+
+    [RelayCommand]
+    private async Task CreateBackup()
+    {
+        var dialog = new SaveFileDialog
+        {
+            Filter = "ZIP|*.zip",
+            FileName = "rezinas-backup.zip"
+        };
+        if (dialog.ShowDialog() != true) return;
+        await _backup.CreateBackupZipAsync(dialog.FileName);
+        StatusMessage = _loc.T("status.settingsSaved");
+    }
+
+    [RelayCommand]
+    private async Task RestoreBackup()
+    {
+        var dialog = new OpenFileDialog { Filter = "ZIP|*.zip" };
+        if (dialog.ShowDialog() != true) return;
+        await _backup.RestoreBackupZipAsync(dialog.FileName);
+        Load();
+        StatusMessage = _loc.T("status.settingsSaved");
+    }
+
+    [RelayCommand]
+    private void PickSyncFolder()
+    {
+        using var dialog = new System.Windows.Forms.FolderBrowserDialog();
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            SyncFolderPath = dialog.SelectedPath;
     }
 
 }

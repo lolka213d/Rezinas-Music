@@ -185,7 +185,7 @@
                     <TextBlock Text="Up next" Style="{StaticResource Muted}" FontSize="11" FontWeight="Bold" Margin="0,0,0,8" />
                     <TextBlock Text="{Binding QueueEmptyTitle}" Style="{StaticResource Muted}" Margin="0,8,0,0"
                                Visibility="{Binding IsQueueEmpty, Converter={StaticResource BoolToVisibility}}" />
-                    <ListBox ItemsSource="{Binding Player.UpNext}" Style="{StaticResource TrackListBox}"
+                    <ListBox x:Name="QueueList" ItemsSource="{Binding Player.UpNext}" Style="{StaticResource TrackListBox}"
                              Visibility="{Binding HasQueueItems, Converter={StaticResource BoolToVisibility}}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>

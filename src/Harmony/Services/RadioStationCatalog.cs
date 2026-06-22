@@ -7,6 +7,7 @@ public static class RadioStationCatalog
 {
     public static IReadOnlyList<RadioStation> All { get; } =
     [
+        Station("personal", RadioStationKind.Personal, 0, "radio.station.personal", "radio.station.personal.sub", "#FF7C3AED", "#FFEC4899"),
         Station("ru", RadioStationKind.Playlist, ChartEditorialMap.GetPlaylistId("ru"), "radio.station.ru", "radio.station.ru.sub", "#FF8B5CF6", "#FF6366F1"),
         Station("en", RadioStationKind.Playlist, ChartEditorialMap.WorldwidePlaylistId, "radio.station.en", "radio.station.en.sub", "#FF38BDF8", "#FF0EA5E9"),
         Station("uk", RadioStationKind.Playlist, ChartEditorialMap.GetPlaylistId("uk"), "radio.station.uk", "radio.station.uk.sub", "#FFF59E0B", "#FFF97316"),
@@ -28,7 +29,7 @@ public static class RadioStationCatalog
         string.IsNullOrWhiteSpace(id) ? null : All.FirstOrDefault(s => s.Id == id);
 
     public static RadioStation DefaultForLanguage(string language) =>
-        Find((language ?? "en").ToLowerInvariant() switch
+        Find("personal") ?? Find((language ?? "en").ToLowerInvariant() switch
         {
             "ru" => "ru",
             "uk" => "uk",

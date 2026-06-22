@@ -62,3 +62,11 @@ program/
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+## Privacy & data
+
+- **Local first:** playlists, favorites, history, and settings live in `%LOCALAPPDATA%\RezinasMusic\harmony.db` on your PC.
+- **API keys:** optional keys (YouTube, Spotify, SoundCloud, Last.fm) are stored locally in your settings — they are never committed to the public repository.
+- **Network:** the app calls Deezer (charts/search), LRCLIB/lyrics.ovh (lyrics), and optionally YouTube/Spotify/SoundCloud when you configure keys. Last.fm scrobbling only runs if you enable it.
+- **Updates:** optional check against [GitHub Releases](https://github.com/lolka213d/Rezinas-Music/releases) — no telemetry or analytics backend.
+- **Discord status:** only sent when you enable it in Settings and Discord is running.

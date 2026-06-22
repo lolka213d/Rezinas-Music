@@ -130,6 +130,18 @@
                                 </Style>
                             </Button.Style>
                         </Button>
+                        <Button Content="{Binding TabPodcastsLabel}" Command="{Binding SelectTabCommand}" CommandParameter="{x:Static vm:SearchTab.Podcasts}" Margin="8,0,0,0">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource FilterChip}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedTab}" Value="{x:Static vm:SearchTab.Podcasts}">
+                                            <Setter Property="Background" Value="White" />
+                                            <Setter Property="Foreground" Value="Black" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                     </StackPanel>
                 </ScrollViewer>
 

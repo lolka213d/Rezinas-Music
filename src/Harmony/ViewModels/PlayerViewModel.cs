@@ -21,6 +21,8 @@ public partial class PlayerViewModel : ObservableObject
     private readonly DeezerHomeService _deezer;
     private readonly LastFmScrobbler _lastFm;
     private readonly RadioPlaybackContext _radioContext;
+    private readonly PersonalWaveService _personalWave;
+    private readonly DiscordPresenceService _discord;
     private readonly IAppLog _log;
     private readonly NavigationService _navigation;
 
@@ -44,6 +46,8 @@ public partial class PlayerViewModel : ObservableObject
         DeezerHomeService deezer,
         LastFmScrobbler lastFm,
         RadioPlaybackContext radioContext,
+        PersonalWaveService personalWave,
+        DiscordPresenceService discord,
         ILocalizationService localization,
         IAppLog log,
         NavigationService navigation)
@@ -56,6 +60,8 @@ public partial class PlayerViewModel : ObservableObject
         _deezer = deezer;
         _lastFm = lastFm;
         _radioContext = radioContext;
+        _personalWave = personalWave;
+        _discord = discord;
         _loc = localization;
         _log = log;
         _navigation = navigation;
@@ -120,6 +126,7 @@ public partial class PlayerViewModel : ObservableObject
         if (start == null) return;
 
         _radioContext.ActiveStation = radioStation;
+        _radioContext.ResetDailyExtension();
 
         _pendingSeekSeconds = 0;
         Interlocked.Increment(ref _playSession);
@@ -300,7 +307,8 @@ public partial class PlayerViewModel : ObservableObject
             if (session != Volatile.Read(ref _playSession)) return;
 
             _player.PlaybackSpeed = (float)_settings.Current.PlaybackSpeed;
-            await _player.PlayAsync(track, _settings.Current.CrossfadeMs);
+            var crossfade = EffectiveCrossfadeMs();
+            await _player.PlayAsync(track, crossfade);
             if (session != Volatile.Read(ref _playSession)) return;
 
             if (restoreSeek > 0.5)
@@ -314,6 +322,7 @@ public partial class PlayerViewModel : ObservableObject
             _ = SaveLastPlaybackAsync(track.Source, track.SourceId, PositionSeconds);
 
             _lastFm.OnTrackStarted(track);
+            _discord.Update(track, true);
             ResetSleepTimer();
 
             _ = RecordPlaybackMetaAsync(track);
@@ -603,21 +612,28 @@ public partial class PlayerViewModel : ObservableObject
 
     private async Task<List<Track>> FetchRadioExtrasAsync(int take)
     {
-        var startIndex = Random.Shared.Next(0, 12);
-        IReadOnlyList<Track> rec = _radioContext.ActiveStation is { } station
-            ? await _deezer.GetRadioStationTracksAsync(station, 40, startIndex)
-            : await _deezer.GetChartTracksAsync();
+        var station = _radioContext.ActiveStation;
+        var dayKey = RadioDailySeed.TodayKey;
+        var batch = _radioContext.NextExtendBatch();
+        var rng = RadioDailySeed.CreateRandom(station?.Id ?? "chart", dayKey, batch);
+        var startIndex = rng.Next(0, 40);
+
+        IReadOnlyList<Track> rec = station is { Kind: RadioStationKind.Personal }
+            ? await _personalWave.GetDailyTracksAsync(40)
+            : station is { } active
+                ? await _deezer.GetRadioStationTracksAsync(active, 40, startIndex)
+                : await _deezer.GetChartTracksAsync();
 
         var extras = rec
             .Where(t => !_queue.Any(q => q != null && q.Source == t.Source && q.SourceId == t.SourceId))
-            .OrderBy(_ => Random.Shared.Next())
+            .OrderBy(_ => rng.Next())
             .Take(take)
             .ToList();
 
         if (extras.Count == 0 && rec.Count > 0)
         {
             extras = rec
-                .OrderBy(_ => Random.Shared.Next())
+                .OrderBy(_ => rng.Next())
                 .Take(take)
                 .ToList();
         }
@@ -696,6 +712,7 @@ public partial class PlayerViewModel : ObservableObject
     private void OnStateChanged()
     {
         IsPlaying = _player.State == PlaybackState.Playing;
+        _discord.Update(CurrentTrack, IsPlaying);
         if (CurrentTrack != null && _player.State is PlaybackState.Paused or PlaybackState.Stopped)
             _ = SaveLastPlaybackAsync(CurrentTrack.Source, CurrentTrack.SourceId, PositionSeconds);
     }
@@ -754,6 +771,36 @@ public partial class PlayerViewModel : ObservableObject
             : CurrentTrack.Title;
 
         _navigation.OpenAlbum(AlbumNavigationContext.FromTrackList(title, queue, CurrentTrack));
+    }
+
+    public void MoveUpNext(int fromIndex, int toIndex)
+    {
+        if (fromIndex < 0 || toIndex < 0 || fromIndex == toIndex) return;
+        var fromQueue = _index + 1 + fromIndex;
+        var toQueue = _index + 1 + toIndex;
+        if (fromQueue < 0 || fromQueue >= _queue.Count || toQueue < 0 || toQueue >= _queue.Count) return;
+
+        var item = _queue[fromQueue];
+        _queue.RemoveAt(fromQueue);
+        _queue.Insert(toQueue, item);
+
+        var savedIdx = _savedOrder.FindIndex(t => t.Matches(item));
+        if (savedIdx >= 0)
+        {
+            _savedOrder.RemoveAt(savedIdx);
+            var targetSaved = Math.Min(toQueue, _savedOrder.Count);
+            _savedOrder.Insert(targetSaved, item);
+        }
+
+        RefreshUpNext();
+    }
+
+    private int EffectiveCrossfadeMs()
+    {
+        var ms = _settings.Current.CrossfadeMs;
+        if (_settings.Current.GaplessPlayback && _queue.Count > 1)
+            ms = Math.Max(ms, 450);
+        return ms;
     }
 
     private static string Format(double seconds)

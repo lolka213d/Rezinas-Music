@@ -95,6 +95,9 @@ public partial class App : Application
         };
         window.Show();
         _ = favoriteLookup.RefreshAsync();
+        ChangelogService.ShowIfUpdated(settings, window);
+        if (settings.Current.StartWithWindows)
+            WindowsStartupService.SetEnabled(true);
         window.ContentRendered += (_, _) =>
         {
             _tray = _services.GetRequiredService<TrayIconService>();
@@ -147,6 +150,12 @@ public partial class App : Application
         services.AddSingleton<NavigationService>();
         services.AddSingleton<DeezerHomeService>();
         services.AddSingleton<HomeFeedCache>();
+        services.AddSingleton<DailyMixCache>();
+        services.AddSingleton<RadioStationCache>();
+        services.AddSingleton<LibraryBackupService>();
+        services.AddSingleton<PersonalWaveService>();
+        services.AddSingleton<DiscordPresenceService>();
+        services.AddSingleton<OfflineCacheService>();
         services.AddSingleton<RadioPlaybackContext>();
         services.AddSingleton<MediaKeysService>();
         services.AddSingleton<TrayIconService>();
@@ -204,6 +213,7 @@ public partial class App : Application
             settings.SaveAsync(settings.Current).GetAwaiter().GetResult();
 
             (_services.GetRequiredService<IAudioPlayerService>() as IDisposable)?.Dispose();
+            _services.GetRequiredService<DiscordPresenceService>().Dispose();
             _services.Dispose();
         }
         base.OnExit(e);

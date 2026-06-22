@@ -136,6 +136,14 @@ public class UserSettings
     /// <summary>First launch / install timestamp (UTC).</summary>
     public DateTime? InstalledAt { get; set; }
 
+    public bool StartWithWindows { get; set; }
+    public bool DiscordPresenceEnabled { get; set; }
+    public bool GaplessPlayback { get; set; }
+    public bool MiniPlayerWindowEnabled { get; set; }
+    public int OfflineCacheLimitMb { get; set; } = 512;
+    public string? SyncFolderPath { get; set; }
+    public string? LastSeenAppVersion { get; set; }
+
 }
 
 

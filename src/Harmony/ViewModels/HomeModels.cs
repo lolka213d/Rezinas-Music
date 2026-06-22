@@ -12,6 +12,7 @@ public sealed class HomeQuickTile
     public bool IsLikedSongs { get; init; }
     public bool IsRecent => TargetPage == AppPage.History;
     public bool IsLibrary => TargetPage == AppPage.Library;
+    public bool IsRadio => TargetPage == AppPage.Radio;
     public bool IsAlbums => TargetPage is AppPage.Albums or AppPage.Collections;
     public bool IsFavorites => TargetPage == AppPage.Favorites;
     public bool IsPlaylistsNav => TargetPage == AppPage.Playlists;

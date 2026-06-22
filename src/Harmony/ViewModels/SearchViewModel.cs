@@ -20,7 +20,7 @@ namespace Harmony.ViewModels;
 
 
 
-public enum SearchTab { All, Tracks, Albums, Artists }
+public enum SearchTab { All, Tracks, Albums, Artists, Podcasts }
 
 public enum SearchSourceFilter { All, Deezer, Local }
 
@@ -199,6 +199,8 @@ public partial class SearchViewModel : ObservableObject
     public string TabAlbumsLabel => _loc.SearchTabLabel(SearchTab.Albums);
 
     public string TabArtistsLabel => _loc.SearchTabLabel(SearchTab.Artists);
+
+    public string TabPodcastsLabel => _loc.SearchTabLabel(SearchTab.Podcasts);
 
     public string FilterAllSourcesLabel => _loc.T("search.filterAll");
     public string FilterDeezerLabel => _loc.T("search.filterDeezer");
@@ -411,11 +413,13 @@ public partial class SearchViewModel : ObservableObject
 
 
 
-            var trackTasks = available.Select(p => SearchProviderAsync(p, Query, token)).ToList();
+            var effectiveQuery = BuildEffectiveQuery(Query);
 
-            var albumTask = _deezer.SearchAlbumsAsync(Query, token);
+            var trackTasks = available.Select(p => SearchProviderAsync(p, effectiveQuery, token)).ToList();
 
-            var artistTask = _deezer.SearchArtistsAsync(Query, token);
+            var albumTask = _deezer.SearchAlbumsAsync(effectiveQuery, token);
+
+            var artistTask = _deezer.SearchArtistsAsync(effectiveQuery, token);
 
             await Task.WhenAll(trackTasks.Cast<Task>().Append(albumTask).Append(artistTask));
 
@@ -497,6 +501,12 @@ public partial class SearchViewModel : ObservableObject
 
                 break;
 
+            case SearchTab.Podcasts:
+
+                foreach (var t in tracks.Where(IsLikelyPodcast)) Results.Add(t);
+
+                break;
+
             default:
 
                 foreach (var t in tracks) Results.Add(t);
@@ -517,7 +527,7 @@ public partial class SearchViewModel : ObservableObject
 
         HasArtists = ArtistResults.Count > 0;
 
-        FeaturedTrack = SelectedTab is SearchTab.Albums or SearchTab.Artists
+        FeaturedTrack = SelectedTab is SearchTab.Albums or SearchTab.Artists or SearchTab.Podcasts
             ? null
             : tracks.FirstOrDefault();
         OnPropertyChanged(nameof(HasFeaturedTrack));
@@ -632,6 +642,15 @@ public partial class SearchViewModel : ObservableObject
 
     }
 
+    private string BuildEffectiveQuery(string query)
+    {
+        if (SelectedTab != SearchTab.Podcasts) return query;
+        return query.Contains("podcast", StringComparison.OrdinalIgnoreCase) ? query : $"podcast {query}";
+    }
+
+    private static bool IsLikelyPodcast(Track track) =>
+        track.DurationSeconds >= 600
+        || track.Title.Contains("podcast", StringComparison.OrdinalIgnoreCase)
+        || (track.AlbumName?.Contains("podcast", StringComparison.OrdinalIgnoreCase) ?? false);
+
 }
-
-

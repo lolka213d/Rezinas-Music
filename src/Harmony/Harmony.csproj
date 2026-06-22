@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <RootNamespace>Harmony</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <AssemblyName>RezinasMusic</AssemblyName>
     <Product>Rezinas Music</Product>
     <AssemblyTitle>Rezinas Music</AssemblyTitle>
@@ -24,6 +24,7 @@
         <Resource Include="Assets\app-icon.png" />
         <Resource Include="Assets\app-icon.ico" />
         <Content Include="Assets\app-icon.ico" CopyToOutputDirectory="PreserveNewest" Link="Assets\app-icon.ico" />
+        <Content Include="..\..\CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" Link="CHANGELOG.md" />
     </ItemGroup>
 
   <ItemGroup>
