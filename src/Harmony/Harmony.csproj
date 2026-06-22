@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- WPF desktop app targeting .NET 8 on Windows -->
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Harmony</RootNamespace>
+    <Version>1.0.0</Version>
+    <AssemblyName>RezinasMusic</AssemblyName>
+    <Product>Rezinas Music</Product>
+    <AssemblyTitle>Rezinas Music</AssemblyTitle>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+    <PropertyGroup>
+        <ApplicationIcon>Assets\app-icon.ico</ApplicationIcon>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Resource Include="Assets\app-icon.png" />
+        <Resource Include="Assets\app-icon.ico" />
+        <Content Include="Assets\app-icon.ico" CopyToOutputDirectory="PreserveNewest" Link="Assets\app-icon.ico" />
+    </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- MVVM helpers (ObservableObject, RelayCommand, source generators) -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+
+    <!-- SQLite via EF Core (code-first, EnsureCreated) -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.6" />
+
+    <!-- Dependency injection container -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+
+    <!-- Audio playback (local files and remote streams) -->
+    <PackageReference Include="NAudio" Version="2.2.1" />
+
+    <!-- Resolve full-length audio streams (YouTube search + manifest) -->
+    <PackageReference Include="YoutubeExplode" Version="6.6.0" />
+
+    <!-- Read ID3 tags when importing local audio files -->
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,115 @@
+<UserControl x:Class="Harmony.Views.PlaylistsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24,20,24,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Style="{StaticResource GlassHeroCard}" Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="{Binding Loc.PlaylistsTitle}" FontSize="28" FontWeight="Bold" Margin="0,0,0,6" />
+                <TextBlock Text="{Binding Loc.PlaylistsSubtitle}" Style="{StaticResource Subtle}" TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="320" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource GlassPanel}" Margin="0,0,14,0" Padding="12">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" Text="{Binding NewPlaylistName, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="{Binding Loc.PlaylistsNewPlaceholder}" />
+                        <Button Grid.Column="1" Style="{StaticResource PillButton}" Content="{Binding Loc.CommonCreate}"
+                                Command="{Binding CreateCommand}" Margin="8,0,0,0" />
+                    </Grid>
+                    <ListBox ItemsSource="{Binding Playlists}" SelectedItem="{Binding SelectedPlaylist, Mode=TwoWay}"
+                             Style="{StaticResource GlassTrackListBox}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="40" Height="40" CornerRadius="6"
+                                            Background="{StaticResource SurfaceHoverBrush}">
+                                        <Path Data="{StaticResource IconPlaylist}" Fill="{StaticResource TextSecondaryBrush}"
+                                              Stretch="Uniform" Width="20" Height="20" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                        <TextBlock Style="{StaticResource Subtle}" FontSize="11">
+                                            <Run Text="{Binding TrackCount, Mode=OneWay}" />
+                                            <Run Text=" " />
+                                            <Run Text="{Binding DataContext.TracksLabel, Mode=OneWay, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource GlassPanel}" Padding="12"
+                    Visibility="{Binding SelectedPlaylist, Converter={StaticResource NullToVisibility}}">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}" FontSize="18" />
+                        <Button Grid.Column="1" Style="{StaticResource OutlineButton}" Content="{Binding Loc.CommonRename}"
+                                Command="{Binding RenameCommand}" Margin="8,0,0,0" Padding="12,6" />
+                        <Button Grid.Column="2" Style="{StaticResource OutlineButton}" Content="{Binding Loc.PlaylistsAddCurrentTrack}"
+                                Command="{Binding AddCurrentTrackCommand}" Margin="8,0,0,0" Padding="12,6" />
+                        <Button Grid.Column="3" Style="{StaticResource OutlineButton}" Content="{Binding Loc.CommonDelete}"
+                                Command="{Binding DeleteCommand}" Margin="8,0,0,0" Padding="12,6" />
+                    </Grid>
+                    <ListBox ItemsSource="{Binding Tracks}" Style="{StaticResource TrackListBox}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Style="{StaticResource IconButton}"
+                                            ToolTip="{Binding DataContext.Loc.TipPlay, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                            Command="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                            CommandParameter="{Binding}">
+                                        <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPlay}" />
+                                    </Button>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" />
+                                        <TextBlock Text="{Binding ArtistName}" Style="{StaticResource Subtle}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Style="{StaticResource IconButton}"
+                                            ToolTip="{Binding DataContext.Loc.TipRemovePlaylist, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                            Command="{Binding DataContext.RemoveTrackCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                            CommandParameter="{Binding}">
+                                        <Path Style="{StaticResource IconPath}" Data="{StaticResource IconDelete}" />
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

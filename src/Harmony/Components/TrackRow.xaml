@@ -1,0 +1,140 @@
+<UserControl x:Class="Harmony.Components.TrackRow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:Harmony.Views"
+             xmlns:img="clr-namespace:Harmony.Helpers"
+             x:Name="Root"
+             MinHeight="52">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="44" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Index / playing indicator (album mode) -->
+        <Grid Grid.Column="0" Width="32" VerticalAlignment="Center">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShowIndex, ElementName=Root}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <TextBlock FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource RzMeta}">
+                        <Setter Property="Text" Value="{Binding Index, ElementName=Root}" />
+                        <Style.Triggers>
+                            <DataTrigger Value="True">
+                                <DataTrigger.Binding>
+                                    <MultiBinding Converter="{StaticResource IsSameTrack}">
+                                        <Binding Path="Track" ElementName="Root" />
+                                        <Binding Path="CurrentTrack" ElementName="Root" />
+                                    </MultiBinding>
+                                </DataTrigger.Binding>
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <Path Data="{StaticResource IconPlay}" Width="14" Height="14"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Fill="{StaticResource AccentBrush}" Visibility="Collapsed">
+                <Path.Style>
+                    <Style TargetType="Path">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                            <DataTrigger Value="True">
+                                <DataTrigger.Binding>
+                                    <MultiBinding Converter="{StaticResource IsSameTrack}">
+                                        <Binding Path="Track" ElementName="Root" />
+                                        <Binding Path="CurrentTrack" ElementName="Root" />
+                                    </MultiBinding>
+                                </DataTrigger.Binding>
+                                <Setter Property="Data" Value="{StaticResource IconVolume}" />
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Path.Style>
+            </Path>
+        </Grid>
+
+        <!-- Play button (list mode) -->
+        <Button Grid.Column="1" Width="32" Height="32"
+                Command="{Binding PlayCommand, ElementName=Root}"
+                CommandParameter="{Binding CommandParameter, ElementName=Root}">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
+                    <Setter Property="Width" Value="32" />
+                    <Setter Property="Height" Value="32" />
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShowPlayButton, ElementName=Root}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+            <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPlay}" Width="14" Height="14" />
+        </Button>
+
+        <Border Grid.Column="2" Style="{StaticResource RzTrackCover}" Margin="0">
+            <Grid>
+                <Path Data="{StaticResource IconNote}" Fill="{StaticResource TextMutedBrush}"
+                      Stretch="Uniform" Width="16" Height="16" />
+                <Image img:ImageLoader.SourceUrl="{Binding Track.ThumbnailUrl, ElementName=Root}"
+                       img:ImageLoader.DecodeWidth="88" Stretch="UniformToFill" />
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="10,0,8,0">
+            <TextBlock Text="{Binding Track.Title, ElementName=Root}" FontWeight="SemiBold" FontSize="13" />
+            <TextBlock Text="{Binding Track.ArtistName, ElementName=Root}" Style="{StaticResource RzMeta}" />
+        </StackPanel>
+
+        <TextBlock Grid.Column="4" Text="{Binding Track.AlbumName, ElementName=Root}" Style="{StaticResource RzMeta}"
+                   VerticalAlignment="Center" Width="120" Margin="0,0,8,0"
+                   Visibility="{Binding ShowAlbum, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
+
+        <TextBlock Grid.Column="4" Text="{Binding MetaText, ElementName=Root}" Style="{StaticResource RzMeta}"
+                   VerticalAlignment="Center" Width="120" Margin="0,0,8,0" HorizontalAlignment="Right"
+                   Visibility="{Binding ShowMeta, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
+
+        <TextBlock Grid.Column="5" Text="{Binding Track.DurationDisplay, ElementName=Root}" Style="{StaticResource RzMeta}"
+                   VerticalAlignment="Center" Width="48" HorizontalAlignment="Right" Margin="0,0,4,0"
+                   Visibility="{Binding ShowDuration, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
+
+        <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource IconButton}" Width="32" Height="32"
+                    Command="{Binding PlaylistCommand, ElementName=Root}"
+                    CommandParameter="{Binding CommandParameter, ElementName=Root}"
+                    Visibility="{Binding PlaylistCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}">
+                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPlaylist}" Width="14" Height="14" />
+            </Button>
+            <views:FavoriteHeart Track="{Binding Track, ElementName=Root}"
+                                 Command="{Binding LikeCommand, ElementName=Root}"
+                                 Visibility="{Binding LikeCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}" />
+            <Button Style="{StaticResource IconButton}" Width="32" Height="32"
+                    Command="{Binding RemoveCommand, ElementName=Root}"
+                    CommandParameter="{Binding CommandParameter, ElementName=Root}"
+                    Visibility="{Binding RemoveCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}">
+                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconDelete}" Width="14" Height="14" />
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

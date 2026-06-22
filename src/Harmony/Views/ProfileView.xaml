@@ -1,0 +1,148 @@
+<UserControl x:Class="Harmony.Views.ProfileView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Harmony.ViewModels"
+             xmlns:views="clr-namespace:Harmony.Views"
+             xmlns:cmp="clr-namespace:Harmony.Components">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="{StaticResource PagePadding}">
+
+            <!-- Profile hero -->
+            <Border CornerRadius="20" Padding="24,22" Margin="0,0,0,20" ClipToBounds="True"
+                    BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#558B5CF6" Offset="0" />
+                        <GradientStop Color="#337C3AED" Offset="0.55" />
+                        <GradientStop Color="#2838BDF8" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="88" Height="88" CornerRadius="44" ClipToBounds="True"
+                            BorderBrush="#44FFFFFF" BorderThickness="2">
+                        <Grid>
+                            <Path Data="{StaticResource IconAccount}" Fill="#88FFFFFF"
+                                  Stretch="Uniform" Width="36" Height="36" />
+                            <Image Source="{Binding AvatarPath}" Stretch="UniformToFill" />
+                        </Grid>
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding UserName}" FontSize="32" FontWeight="Bold" />
+                        <TextBlock Margin="0,8,0,0" Foreground="#D8FFFFFF" FontSize="14">
+                            <Run Text="Установлено: " />
+                            <Run Text="{Binding InstalledDisplay, Mode=OneWay}" FontWeight="SemiBold" />
+                        </TextBlock>
+                    </StackPanel>
+                    <Button Grid.Column="2" Style="{StaticResource OutlineButton}" Content="Настройки"
+                            Command="{Binding OpenSettingsCommand}" VerticalAlignment="Center"
+                            Foreground="White" />
+                </Grid>
+            </Border>
+
+            <!-- Playlists -->
+            <Grid Margin="0,8,0,12">
+                <TextBlock Text="Мои плейлисты" Style="{StaticResource RzSectionTitle}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Playlists.Count, StringFormat='{}{0} шт.'}" Style="{StaticResource RzMeta}"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
+
+            <Border Style="{StaticResource GlassPanel}" Padding="24" Effect="{x:Null}" Margin="0,0,0,20"
+                    Visibility="{Binding HasPlaylists, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="Пока нет плейлистов" FontWeight="SemiBold" FontSize="16"
+                               Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+                    <TextBlock Text="Создайте плейлист на странице «Плейлисты»."
+                               Style="{StaticResource RzBody}" TextAlignment="Center" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding Playlists}" Margin="0,0,0,24"
+                          Visibility="{Binding HasPlaylists, Converter={StaticResource BoolToVisibility}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:ProfilePlaylistCard}">
+                        <cmp:PlaylistCard Title="{Binding Title}"
+                                          Subtitle="{Binding Subtitle}"
+                                          Command="{Binding DataContext.OpenPlaylistCommand, RelativeSource={RelativeSource AncestorType=views:ProfileView}}"
+                                          CommandParameter="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Albums -->
+            <Grid Margin="0,0,0,12">
+                <TextBlock Text="Мои альбомы" Style="{StaticResource RzSectionTitle}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding Albums.Count, StringFormat='{}{0} шт.'}" Style="{StaticResource RzMeta}"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
+
+            <TextBlock Text="Загрузка…" Style="{StaticResource RzBody}" Margin="0,0,0,12"
+                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+
+            <Border Style="{StaticResource GlassPanel}" Padding="24" Effect="{x:Null}"
+                    Visibility="{Binding HasAlbums, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="Пока нет альбомов" FontWeight="SemiBold" FontSize="16"
+                               Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+                    <TextBlock Text="Импортируйте музыку в библиотеку или создайте альбом."
+                               Style="{StaticResource RzBody}" TextAlignment="Center" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding Albums}"
+                          Visibility="{Binding HasAlbums, Converter={StaticResource BoolToVisibility}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:ProfileAlbumCard}">
+                        <Button Margin="0,0,14,14" Cursor="Hand" Background="Transparent" BorderThickness="0"
+                                Command="{Binding DataContext.OpenAlbumCommand, RelativeSource={RelativeSource AncestorType=views:ProfileView}}"
+                                CommandParameter="{Binding}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Width="156" CornerRadius="16" BorderBrush="{StaticResource GlassBorderBrush}"
+                                            BorderThickness="1" Background="{StaticResource GlassFillBrush}" ClipToBounds="True">
+                                        <StackPanel>
+                                            <Border Height="156" ClipToBounds="True">
+                                                <Grid>
+                                                    <Border Background="#228B5CF6" />
+                                                    <Path Data="{StaticResource IconAlbum}" Fill="#66FFFFFF"
+                                                          Stretch="Uniform" Width="48" Height="48" />
+                                                    <Image Source="{Binding ThumbnailUrl}" Stretch="UniformToFill" />
+                                                </Grid>
+                                            </Border>
+                                            <StackPanel Margin="12,10,12,12">
+                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <TextBlock Text="{Binding Subtitle}" Style="{StaticResource RzMeta}"
+                                                           Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Opacity" Value="0.92" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

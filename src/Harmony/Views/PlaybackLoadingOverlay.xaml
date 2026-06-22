@@ -1,0 +1,61 @@
+<UserControl x:Class="Harmony.Views.PlaybackLoadingOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             IsHitTestVisible="{Binding IsStartupLoading}"
+             Focusable="False">
+    <Grid Visibility="{Binding IsStartupLoading, Converter={StaticResource BoolToVisibility}}">
+        <Border Background="#CC050508" />
+
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border Width="128" Height="128" CornerRadius="28"
+                    Background="#FF12131A" BorderBrush="#28FFFFFF" BorderThickness="1"
+                    HorizontalAlignment="Center">
+                <Border.Effect>
+                    <DropShadowEffect Color="#AA8B5CF6" BlurRadius="28" ShadowDepth="0" Opacity="0.45" />
+                </Border.Effect>
+                <Grid>
+                    <Ellipse Width="108" Height="108" StrokeThickness="3" RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.Stroke>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#FF8B5CF6" Offset="0" />
+                                <GradientStop Color="#0038BDF8" Offset="0.55" />
+                                <GradientStop Color="#FF38BDF8" Offset="1" />
+                            </LinearGradientBrush>
+                        </Ellipse.Stroke>
+                        <Ellipse.RenderTransform>
+                            <RotateTransform x:Name="SpinnerRotate" Angle="0" />
+                        </Ellipse.RenderTransform>
+                        <Ellipse.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="SpinnerRotate"
+                                                         Storyboard.TargetProperty="Angle"
+                                                         From="0" To="360" Duration="0:0:1.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Ellipse.Triggers>
+                    </Ellipse>
+
+                    <Border Width="72" Height="72" CornerRadius="18" ClipToBounds="True"
+                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#FF8B5CF6" Offset="0" />
+                                <GradientStop Color="#FF38BDF8" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="pack://application:,,,/Assets/app-icon.png" Stretch="UniformToFill" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <TextBlock Text="{Binding SplashTitle, FallbackValue='Rezinas Music'}"
+                       FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,18,0,0" />
+            <TextBlock Text="{Binding SplashSubtitle}" Style="{StaticResource Muted}"
+                       FontSize="12" HorizontalAlignment="Center" Margin="0,6,0,0"
+                       TextAlignment="Center" />
+        </StackPanel>
+    </Grid>
+</UserControl>

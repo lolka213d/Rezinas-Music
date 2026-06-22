@@ -1,0 +1,178 @@
+<Window x:Class="Harmony.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:Harmony.Views"
+        xmlns:vm="clr-namespace:Harmony.ViewModels"
+        Title="Rezinas Music" Height="820" Width="1280"
+        MinHeight="620" MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="{StaticResource BackgroundDeepBrush}"
+        FontFamily="Segoe UI Variable Display, Segoe UI">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="36" ResizeBorderThickness="6" GlassFrameThickness="0"
+                      CornerRadius="0" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="36" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" MinHeight="100" />
+        </Grid.RowDefinitions>
+
+        <!-- Dark custom title bar (replaces white system chrome) -->
+        <Border Grid.Row="0" Background="{StaticResource BackgroundDeepBrush}"
+                BorderBrush="#18FFFFFF" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0"
+                            WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Border Width="18" Height="18" CornerRadius="5" Margin="0,0,8,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#FF8B5CF6" Offset="0" />
+                                <GradientStop Color="#FF38BDF8" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Path Data="{StaticResource IconNote}" Fill="White" Stretch="Uniform"
+                              Width="10" Height="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="{Binding Loc.CommonAppName}" FontSize="12" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <Border Grid.Column="1" Background="Transparent"
+                        MouseLeftButtonDown="TitleBar_MouseLeftButtonDown" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button Style="{StaticResource TitleBarButton}" Click="Minimize_Click" ToolTip="Minimize">
+                        <Path Data="M4 18h16" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.5" Width="10" Height="10" Stretch="Uniform" />
+                    </Button>
+                    <Button x:Name="MaximizeButton" Style="{StaticResource TitleBarButton}" Click="Maximize_Click" ToolTip="Maximize">
+                        <Path x:Name="MaximizeIcon" Data="M4 6h12v12H4z" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.5" Width="10" Height="10" Stretch="Uniform" Fill="Transparent" />
+                    </Button>
+                    <Button Style="{StaticResource TitleBarCloseButton}" Click="Close_Click" ToolTip="Close">
+                        <Path Data="{StaticResource IconClose}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              Width="10" Height="10" Stretch="Uniform" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Top navigation — premium header -->
+        <Border Grid.Row="1" Padding="24,0,28,0" MinHeight="76"
+                Background="#CC07080D"
+                BorderBrush="#14FFFFFF" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="34" Height="34" CornerRadius="10">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#FF8B5CF6" Offset="0" />
+                                <GradientStop Color="#FF38BDF8" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="/Assets/app-icon.png" Stretch="UniformToFill" />
+                    </Border>
+                    <TextBlock Text="{Binding Loc.CommonAppName}" FontSize="20" FontWeight="Bold"
+                               Margin="12,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <ListBox Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                         Background="Transparent" BorderThickness="0"
+                         ItemsSource="{Binding NavigationItems}"
+                         SelectedItem="{Binding SelectedNavigation, Mode=TwoWay}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                         MaxWidth="900">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource AuroraTopNavItem}" />
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:NavigationItem}">
+                            <TextBlock Text="{Binding Label}" FontSize="13" FontWeight="SemiBold" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Cursor="Hand">
+                    <StackPanel.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding OpenProfileCommand}" />
+                    </StackPanel.InputBindings>
+                    <StackPanel.ContextMenu>
+                        <ContextMenu Style="{StaticResource DarkContextMenu}"
+                                     DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                            <MenuItem Header="{Binding UserName}" IsEnabled="False" FontWeight="SemiBold" />
+                            <Separator Style="{StaticResource DarkMenuSeparator}" />
+                            <MenuItem Header="{Binding Loc.CommonProfile}" Command="{Binding OpenProfileCommand}" />
+                            <Separator Style="{StaticResource DarkMenuSeparator}" />
+                            <MenuItem Header="{Binding Loc.NavHome}" Command="{Binding OpenProfileHomeCommand}" />
+                            <MenuItem Header="{Binding Loc.NavSearch}" Command="{Binding OpenProfileSearchCommand}" />
+                            <MenuItem Header="{Binding Loc.SettingsProfile}" Command="{Binding OpenProfileSettingsCommand}" />
+                            <MenuItem Header="{Binding Loc.NavLibrary}" Command="{Binding OpenProfileLibraryCommand}" />
+                            <MenuItem Header="{Binding Loc.NavPlaylists}" Command="{Binding OpenProfilePlaylistsCommand}" />
+                            <MenuItem Header="{Binding Loc.NavFavorites}" Command="{Binding OpenProfileFavoritesCommand}" />
+                            <MenuItem Header="{Binding Loc.NavHistory}" Command="{Binding OpenProfileHistoryCommand}" />
+                            <Separator Style="{StaticResource DarkMenuSeparator}" />
+                            <MenuItem Header="{Binding Loc.SettingsAppearance}" Command="{Binding OpenProfileLookCommand}" />
+                            <MenuItem Header="{Binding Loc.SettingsPlayback}" Command="{Binding OpenProfilePlaybackCommand}" />
+                            <MenuItem Header="{Binding Loc.AlbumLyricsTitle}" Command="{Binding OpenProfileLyricsCommand}" />
+                            <Separator Style="{StaticResource DarkMenuSeparator}" />
+                            <MenuItem Header="{Binding Loc.NavSettings}" Command="{Binding OpenProfileSettingsCommand}" />
+                        </ContextMenu>
+                    </StackPanel.ContextMenu>
+                    <Border Width="36" Height="36" CornerRadius="18" ClipToBounds="True"
+                            BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1">
+                        <Grid>
+                            <Path Data="{StaticResource IconAccount}" Fill="{StaticResource TextMutedBrush}"
+                                  Stretch="Uniform" Width="16" Height="16" />
+                            <Image Source="{Binding AvatarPath}" Stretch="UniformToFill" />
+                        </Grid>
+                    </Border>
+                    <TextBlock Text="{Binding UserName}" FontWeight="SemiBold" FontSize="13"
+                               Margin="10,0,0,0" VerticalAlignment="Center" MaxWidth="120"
+                               TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" ClipToBounds="False">
+            <views:AmbientBackground />
+
+            <ContentControl x:Name="PageHost" Content="{Binding CurrentPage}"
+                            VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+
+            <views:LyricsOverlay DataContext="{Binding Lyrics}"
+                                 Visibility="{Binding IsOpen, Converter={StaticResource BoolToVisibility}}"
+                                 IsHitTestVisible="{Binding IsOpen}" />
+        </Grid>
+
+        <views:PlayerBar Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Top"
+                         Margin="16,6,16,10" MaxWidth="1400"
+                         DataContext="{Binding Player}" Panel.ZIndex="10" />
+
+        <views:PlaybackLoadingOverlay Grid.RowSpan="4" Panel.ZIndex="500" />
+    </Grid>
+</Window>

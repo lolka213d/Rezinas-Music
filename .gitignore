@@ -1,0 +1,37 @@
+# Build
+bin/
+obj/
+publish/
+*.user
+*.suo
+.vs/
+
+# Installers / binaries
+*.exe
+*.msi
+*.pdb
+
+# User / local data
+*.db
+*.db-shm
+*.db-wal
+
+# OS & IDE
+Thumbs.db
+.DS_Store
+.idea/
+*.swp
+
+# Logs & temp
+*.log
+.video-frames/
+.video-frames-extra/
+
+# Cursor / local assets
+assets/
+Screenshot*.png
+*.png
+!src/Harmony/Assets/app-icon.png
+
+# Keep icon in repo
+!src/Harmony/Assets/app-icon.ico

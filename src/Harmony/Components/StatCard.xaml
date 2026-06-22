@@ -1,0 +1,12 @@
+<UserControl x:Class="Harmony.Components.StatCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root" Margin="0,0,10,0">
+    <Border Style="{StaticResource RzStatCard}">
+        <StackPanel>
+            <TextBlock Text="{Binding Label, ElementName=Root}" Style="{StaticResource RzMeta}" FontSize="11"
+                       FontWeight="SemiBold" />
+            <TextBlock Text="{Binding Value, ElementName=Root}" FontSize="22" FontWeight="Bold" Margin="0,4,0,0" />
+        </StackPanel>
+    </Border>
+</UserControl>
