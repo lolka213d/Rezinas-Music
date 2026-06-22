@@ -32,6 +32,7 @@ assets/
 Screenshot*.png
 *.png
 !src/Harmony/Assets/app-icon.png
+!docs/screenshots/**
 
 # Keep icon in repo
 !src/Harmony/Assets/app-icon.ico

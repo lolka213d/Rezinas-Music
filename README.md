@@ -1,5 +1,9 @@
 # Rezinas Music
 
+![Rezinas Music — main screen](docs/screenshots/01-main.png)
+
+![Rezinas Music — player](docs/screenshots/02-player.png)
+
 Desktop music player for Windows (.NET 8 / WPF): search, playlists, favorites, radio «My Wave», lyrics, and a bottom player bar.
 
 **Repository:** [github.com/lolka213d/Rezinas-Music](https://github.com/lolka213d/Rezinas-Music)
@@ -49,6 +53,7 @@ The installer and published `.exe` do **not** include your personal library.
 ```
 program/
 ├── Harmony.sln
+├── docs/screenshots/     # README images
 ├── src/Harmony/          # WPF app
 ├── installer/            # Inno Setup script
 └── tests/
@@ -56,4 +61,4 @@ program/
 
 ## License
 
-Add a license file if you plan to distribute publicly.
+This project is licensed under the [MIT License](LICENSE).

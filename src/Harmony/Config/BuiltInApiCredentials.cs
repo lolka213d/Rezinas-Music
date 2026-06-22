@@ -3,15 +3,14 @@ using Harmony.Models;
 namespace Harmony.Config;
 
 /// <summary>
-/// Built-in API keys used for all installations. Fill before distributing the app.
-/// End users never see or edit these in Settings.
+/// Optional built-in API keys for search providers.
+/// Leave null in the public repo; set locally or via user Settings if needed.
 /// </summary>
 public static class BuiltInApiCredentials
 {
-    // Set your keys here (or leave null to use Deezer-only / YouTube without key).
     public const string? YouTubeApiKey = null;
-    public const string? SpotifyClientId = "";
-    public const string? SpotifyClientSecret = "";
+    public const string? SpotifyClientId = null;
+    public const string? SpotifyClientSecret = null;
     public const string? SoundCloudClientId = null;
 
     public static void Apply(UserSettings settings)
