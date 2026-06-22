@@ -148,16 +148,8 @@ public sealed class SpotifyLibrarySyncService
 
         var tracks = await FetchPlaylistTracksFromUrlAsync(
             token,
-            $"{ApiBase}/playlists/{playlistId}/items?limit=100&{MarketQuery}&additional_types=track",
+            $"{ApiBase}/playlists/{playlistId}/items?limit=50&{MarketQuery}&additional_types=track",
             ct);
-
-        if (tracks.Count == 0)
-        {
-            tracks = await FetchPlaylistTracksFromUrlAsync(
-                token,
-                $"{ApiBase}/playlists/{playlistId}/tracks?limit=100&{MarketQuery}&additional_types=track",
-                ct);
-        }
 
         if (tracks.Count == 0 && expectedTotal is > 0)
             _log.Warning($"Spotify playlist {playlistId}: API reports {expectedTotal} tracks but none could be imported.");
@@ -167,11 +159,16 @@ public sealed class SpotifyLibrarySyncService
 
     private async Task<int?> GetPlaylistTrackTotalAsync(string token, string playlistId, CancellationToken ct)
     {
-        var meta = await GetJsonAsync($"{ApiBase}/playlists/{playlistId}?fields=name,tracks.total", token, ct);
-        if (meta is { } json
-            && json.TryGetProperty("tracks", out var tracks)
-            && tracks.TryGetProperty("total", out var totalEl))
-            return totalEl.GetInt32();
+        var meta = await GetJsonAsync($"{ApiBase}/playlists/{playlistId}?fields=name,items.total,tracks.total", token, ct);
+        if (meta is not { } json)
+            return null;
+
+        if (json.TryGetProperty("items", out var items) && items.TryGetProperty("total", out var itemsTotal))
+            return itemsTotal.GetInt32();
+
+        if (json.TryGetProperty("tracks", out var tracks) && tracks.TryGetProperty("total", out var tracksTotal))
+            return tracksTotal.GetInt32();
+
         return null;
     }
 
@@ -179,6 +176,8 @@ public sealed class SpotifyLibrarySyncService
     {
         var tracks = new List<Track>();
         var next = startUrl;
+        var rawItems = 0;
+        var skipped = 0;
 
         while (!string.IsNullOrWhiteSpace(next))
         {
@@ -189,14 +188,20 @@ public sealed class SpotifyLibrarySyncService
             {
                 foreach (var item in items.EnumerateArray())
                 {
+                    rawItems++;
                     var track = SpotifyTrackParser.FromItem(item);
                     if (track != null)
                         tracks.Add(track);
+                    else
+                        skipped++;
                 }
             }
 
             next = ReadNextUrl(page.Value);
         }
+
+        if (rawItems > 0 && tracks.Count == 0)
+            _log.Warning($"Spotify playlist page returned {rawItems} items but 0 tracks parsed ({skipped} skipped).");
 
         return tracks;
     }

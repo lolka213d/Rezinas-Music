@@ -10,7 +10,7 @@ namespace Harmony.Services;
 public sealed class RadioStationCache
 {
     private static string CacheFileFor(string stationId) =>
-        Path.Combine(AppPaths.CacheFolder, $"radio-{stationId}.json");
+        Path.Combine(AppPaths.CacheFolder, $"radio-v2-{stationId}.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

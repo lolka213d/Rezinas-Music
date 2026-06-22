@@ -44,6 +44,8 @@ public partial class AlbumDetailViewModel : ObservableObject
 
     private int _lyricsGeneration;
 
+    private int _artistMetaGeneration;
+
     private IReadOnlyList<LyricLineViewModel> _lyricLineList = Array.Empty<LyricLineViewModel>();
 
     private double _lyricSyncScale = 1.0;
@@ -139,7 +141,7 @@ public partial class AlbumDetailViewModel : ObservableObject
 
     public string PageKindLabel => IsTrackList ? "NOW PLAYING" : "ALBUM";
 
-    public string? HeroCoverUrl => FocusedTrack?.ThumbnailUrl ?? ThumbnailUrl ?? ArtistPictureUrl;
+    public string? HeroCoverUrl => FocusedTrack?.ThumbnailUrl ?? ThumbnailUrl;
 
     public string FocusedTitle => FocusedTrack?.Title ?? "Select a track";
 
@@ -213,9 +215,21 @@ public partial class AlbumDetailViewModel : ObservableObject
 
             {
 
-                tracks = preloaded;
+                var liveQueue = _player.AllQueue;
 
-                DescriptionLine = $"{Title} · {tracks.Count} tracks";
+                tracks = liveQueue.Count > 0 ? liveQueue.ToList() : preloaded;
+
+                IsTrackList = true;
+
+                Title = "NOW PLAYING";
+
+                ArtistName = context.InitialTrack?.ArtistName ?? context.ArtistName;
+
+                ThumbnailUrl = context.InitialTrack?.ThumbnailUrl ?? context.ThumbnailUrl;
+
+                DescriptionLine = preloaded.Count == 1
+                    ? $"{context.InitialTrack?.ArtistName} · {context.InitialTrack?.DurationDisplay}"
+                    : $"{preloaded.Count} tracks in queue";
 
             }
 
@@ -293,31 +307,11 @@ public partial class AlbumDetailViewModel : ObservableObject
 
             var yearPart = year is int y ? $"{y} · " : "";
 
-            MetaLine = $"{yearPart}{Tracks.Count} songs · {FormatDuration(totalSec)}";
+            MetaLine = IsTrackList
+                ? $"{Tracks.Count} songs · {FormatDuration(totalSec)}"
+                : $"{yearPart}{Tracks.Count} songs · {FormatDuration(totalSec)}";
 
-
-
-            if (FocusedTrack == null || !Tracks.Any(t => t.Matches(FocusedTrack)))
-
-                SyncFocusedTrack();
-
-            else
-
-            {
-
-                OnPropertyChanged(nameof(HeroCoverUrl));
-
-                OnPropertyChanged(nameof(FocusedTitle));
-
-                OnPropertyChanged(nameof(FocusedArtistName));
-
-                OnPropertyChanged(nameof(FocusedInfoLine));
-
-                OnPropertyChanged(nameof(IsFocusedTrackPlaying));
-
-            }
-
-
+            SyncFocusedTrack();
 
             await UpdateFocusedFavoriteAsync();
             _ = LoadArtistMetadataAsync();
@@ -339,23 +333,38 @@ public partial class AlbumDetailViewModel : ObservableObject
 
     private async Task LoadArtistMetadataAsync()
     {
+        var artistName = FocusedTrack?.ArtistName ?? ArtistName;
+        if (string.IsNullOrWhiteSpace(artistName)) return;
+
+        var generation = Interlocked.Increment(ref _artistMetaGeneration);
         ArtistPictureUrl = null;
         ArtistBio = string.Empty;
-        if (string.IsNullOrWhiteSpace(ArtistName)) return;
 
         try
         {
-            var artistId = await _deezer.FindArtistIdAsync(ArtistName);
+            var artistId = await _deezer.FindArtistIdAsync(artistName);
+            if (generation != _artistMetaGeneration) return;
+
             if (string.IsNullOrWhiteSpace(artistId))
             {
-                ArtistBio = ArtistName;
+                ArtistBio = artistName;
                 return;
             }
 
             var data = await _deezer.GetArtistPageAsync(artistId);
+            if (generation != _artistMetaGeneration) return;
+
             if (data == null)
             {
-                ArtistBio = ArtistName;
+                ArtistBio = artistName;
+                return;
+            }
+
+            if (!string.Equals(data.Name, artistName, StringComparison.OrdinalIgnoreCase)
+                && !data.Name.Contains(artistName, StringComparison.OrdinalIgnoreCase)
+                && !artistName.Contains(data.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                ArtistBio = artistName;
                 return;
             }
 
@@ -369,7 +378,8 @@ public partial class AlbumDetailViewModel : ObservableObject
         }
         catch
         {
-            ArtistBio = ArtistName;
+            if (generation == _artistMetaGeneration)
+                ArtistBio = artistName;
         }
     }
 
@@ -599,14 +609,15 @@ public partial class AlbumDetailViewModel : ObservableObject
         OnPropertyChanged(nameof(IsFocusedTrackPlaying));
 
         _ = UpdateFocusedFavoriteAsync();
-
+        _ = LoadArtistMetadataAsync();
         _ = LoadLyricsAsync();
-
     }
 
-
-
-    partial void OnArtistNameChanged(string value) => OnPropertyChanged(nameof(FocusedArtistName));
+    partial void OnArtistNameChanged(string value)
+    {
+        if (FocusedTrack == null)
+            OnPropertyChanged(nameof(FocusedArtistName));
+    }
 
     partial void OnThumbnailUrlChanged(string? value) => OnPropertyChanged(nameof(HeroCoverUrl));
     partial void OnArtistPictureUrlChanged(string? value) => OnPropertyChanged(nameof(HeroCoverUrl));
@@ -637,6 +648,20 @@ public partial class AlbumDetailViewModel : ObservableObject
 
 
 
+        if (e.PropertyName is nameof(PlayerViewModel.IsShuffle) && IsTrackList)
+
+        {
+
+            SyncTracksFromPlayer();
+
+            SyncFocusedTrack();
+
+            return;
+
+        }
+
+
+
         if (e.PropertyName is nameof(PlayerViewModel.PositionSeconds) or nameof(PlayerViewModel.DurationSeconds))
 
         {
@@ -654,25 +679,30 @@ public partial class AlbumDetailViewModel : ObservableObject
 
 
     private void SyncFocusedTrack()
-
     {
-
+        Track? next = null;
         if (_player.CurrentTrack != null)
+            next = Tracks.FirstOrDefault(t => t.Matches(_player.CurrentTrack));
 
-        {
+        next ??= Tracks.FirstOrDefault(t => FocusedTrack != null && t.Matches(FocusedTrack));
+        next ??= Tracks.FirstOrDefault();
 
-            var match = Tracks.FirstOrDefault(t => t.Matches(_player.CurrentTrack));
+        if (!ReferenceEquals(FocusedTrack, next))
+            FocusedTrack = next;
+    }
 
-            if (match != null)
+    private void SyncTracksFromPlayer()
+    {
+        var queue = _player.AllQueue;
+        if (queue.Count == 0) return;
 
-                FocusedTrack = match;
+        Tracks.Clear();
+        foreach (var track in queue)
+            Tracks.Add(track);
 
-        }
-
-
-
-        FocusedTrack ??= Tracks.FirstOrDefault();
-
+        HasTracks = Tracks.Count > 0;
+        var totalSec = Tracks.Sum(t => Math.Max(0, t.DurationSeconds));
+        MetaLine = $"{Tracks.Count} songs · {FormatDuration(totalSec)}";
     }
 
 
@@ -731,6 +761,9 @@ public partial class AlbumDetailViewModel : ObservableObject
     {
 
         FocusedTrack = track;
+
+        if (IsTrackList && _player.AllQueue.Any(t => t.Matches(track)))
+            return _player.JumpToQueueTrackAsync(track);
 
         return _player.PlayQueueAsync(Tracks, track);
 

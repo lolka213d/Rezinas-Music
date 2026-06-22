@@ -14,12 +14,9 @@ public static class SpotifyTrackParser
         if (item.TryGetProperty("is_local", out var outerLocal) && outerLocal.GetBoolean())
             return null;
 
-        if (item.TryGetProperty("track", out var wrapped))
-        {
-            if (wrapped.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-                return null;
-            item = wrapped;
-        }
+        item = UnwrapPlaylistEntry(item);
+        if (item.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            return null;
 
         if (item.TryGetProperty("is_local", out var local) && local.GetBoolean())
             return null;
@@ -54,6 +51,19 @@ public static class SpotifyTrackParser
             ThumbnailUrl = cover,
             StreamUrl = preview
         };
+    }
+
+    private static JsonElement UnwrapPlaylistEntry(JsonElement item)
+    {
+        // Feb 2026+ playlist items: { added_at, item: { type: "track", ... } }
+        if (item.TryGetProperty("item", out var itemEl))
+            return itemEl;
+
+        // Legacy / liked songs: { added_at, track: { ... } }
+        if (item.TryGetProperty("track", out var trackEl))
+            return trackEl;
+
+        return item;
     }
 
     private static string ReadArtistName(JsonElement artistEl)

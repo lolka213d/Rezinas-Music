@@ -66,15 +66,56 @@ public sealed class DeezerHomeService
     {
         IReadOnlyList<Track> tracks = station.Kind switch
         {
-            RadioStationKind.Playlist => await GetPlaylistTracksAsync(station.DeezerId, 2, 25, startIndex, ct),
+            RadioStationKind.Playlist => await GetRegionalRadioTracksAsync(station.Id, limit, startIndex, ct),
             RadioStationKind.Genre => await GetGenreRadioTracksAsync((int)station.DeezerId, limit, ct),
             _ => await GetPlaylistTracksAsync(ChartEditorialMap.WorldwidePlaylistId, 2, 25, startIndex, ct)
         };
         return tracks.Take(limit).ToList();
     }
 
+    private async Task<IReadOnlyList<Track>> GetRegionalRadioTracksAsync(
+        string stationId, int limit, int startIndex, CancellationToken ct)
+    {
+        var merged = new List<Track>();
+        foreach (var playlistId in ChartEditorialMap.GetPlaylistIds(stationId))
+        {
+            var batch = await GetPlaylistTracksAsync(playlistId, 2, 25, startIndex, ct, allowChartFallback: false);
+            foreach (var track in batch)
+            {
+                if (merged.Any(t => t.Matches(track))) continue;
+                merged.Add(track);
+            }
+
+            if (merged.Count >= limit * 2)
+                break;
+        }
+
+        var filtered = RegionalTrackFilter.Apply(stationId, merged, limit * 2);
+        if (filtered.Count >= limit / 2)
+            return filtered;
+
+        foreach (var playlistId in ChartEditorialMap.GetPlaylistIds(stationId))
+        {
+            var batch = await GetPlaylistTracksAsync(playlistId, 3, 40, startIndex, ct, allowChartFallback: false);
+            foreach (var track in batch)
+            {
+                if (merged.Any(t => t.Matches(track))) continue;
+                merged.Add(track);
+            }
+        }
+
+        filtered = RegionalTrackFilter.Apply(stationId, merged, limit * 2);
+        return filtered.Count > 0
+            ? filtered
+            : merged.Take(limit).ToList();
+    }
+
     public async Task<IReadOnlyList<Track>> GetPlaylistTracksAsync(
-        long playlistId, int maxPages, int pageSize, int startIndex = 0, CancellationToken ct = default)
+        long playlistId, int maxPages, int pageSize, int startIndex = 0, CancellationToken ct = default) =>
+        await GetPlaylistTracksAsync(playlistId, maxPages, pageSize, startIndex, ct, allowChartFallback: true);
+
+    public async Task<IReadOnlyList<Track>> GetPlaylistTracksAsync(
+        long playlistId, int maxPages, int pageSize, int startIndex, CancellationToken ct, bool allowChartFallback)
     {
         var all = new List<Track>();
         var size = Math.Clamp(pageSize, 1, PageSize);
@@ -93,13 +134,13 @@ public sealed class DeezerHomeService
                 if (batch.Count < size) break;
             }
 
-            return all.Count > 0
+            return all.Count > 0 || !allowChartFallback
                 ? all
                 : await GetChartTracksAsync(maxPages, pageSize, ct);
         }
         catch
         {
-            return all.Count > 0
+            return all.Count > 0 || !allowChartFallback
                 ? all
                 : await GetChartTracksAsync(maxPages, pageSize, ct);
         }

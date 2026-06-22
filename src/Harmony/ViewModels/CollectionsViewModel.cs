@@ -80,6 +80,7 @@ public partial class CollectionsViewModel : ObservableObject
 
     public ObservableCollection<Album> UserAlbums { get; } = new();
     public ObservableCollection<Playlist> Playlists { get; } = new();
+    public ObservableCollection<PlaylistBrowseCard> PlaylistCards { get; } = new();
     public ObservableCollection<Track> Tracks { get; } = new();
     public ObservableCollection<Track> FilteredTracks { get; } = new();
     public ObservableCollection<CollectionTrackRow> FilteredTrackRows { get; } = new();
@@ -276,8 +277,13 @@ public partial class CollectionsViewModel : ObservableObject
     {
         var selectedId = SelectedPlaylist?.Id;
         Playlists.Clear();
+        PlaylistCards.Clear();
         foreach (var p in await _playlists.GetPlaylistsAsync())
+        {
             Playlists.Add(p);
+            var thumbs = await PlaylistCoverHelper.GetThumbnailsAsync(_playlists, p.Id);
+            PlaylistCards.Add(new PlaylistBrowseCard { Playlist = p, Thumbnails = thumbs });
+        }
 
         if (selectedId is > 0)
             SelectedPlaylist = Playlists.FirstOrDefault(p => p.Id == selectedId);
@@ -543,7 +549,7 @@ public partial class CollectionsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SelectPlaylist(Playlist playlist) => SelectedPlaylist = playlist;
+    private void SelectPlaylist(PlaylistBrowseCard card) => SelectedPlaylist = card.Playlist;
 
     [RelayCommand]
     private void GoBackFromPlaylist()

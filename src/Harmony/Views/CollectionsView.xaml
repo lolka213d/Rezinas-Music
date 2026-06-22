@@ -35,16 +35,20 @@
                     <WrapPanel Visibility="{Binding IsPlaylistsEmpty, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
                         <Button Style="{StaticResource RzNewPlaylistCard}"
                                 Command="{Binding OpenCreatePlaylistDialogCommand}" />
-                        <ItemsControl ItemsSource="{Binding Playlists}">
+                        <ItemsControl ItemsSource="{Binding PlaylistCards}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <WrapPanel />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
-                                <DataTemplate>
+                                <DataTemplate DataType="{x:Type models:PlaylistBrowseCard}">
                                     <cmp:PlaylistCard Title="{Binding Name}"
                                                       Subtitle="{Binding TrackCount, Converter={StaticResource TrackCountLabel}}"
+                                                      Thumbnail0="{Binding Thumbnail0}"
+                                                      Thumbnail1="{Binding Thumbnail1}"
+                                                      Thumbnail2="{Binding Thumbnail2}"
+                                                      Thumbnail3="{Binding Thumbnail3}"
                                                       Command="{Binding DataContext.SelectPlaylistCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                       CommandParameter="{Binding}" />
                                 </DataTemplate>

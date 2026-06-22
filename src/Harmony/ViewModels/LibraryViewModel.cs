@@ -141,8 +141,9 @@ public partial class LibraryViewModel : ObservableObject
     private Task Play(Track track) => _player.PlayQueueAsync(Tracks, track);
 
     [RelayCommand]
-    private async Task Remove(Track track)
+    private async Task Remove(Track? track)
     {
+        if (track == null || track.Id <= 0) return;
         await _library.RemoveFromLibraryAsync(track.Id);
         await LoadAsync();
     }

@@ -35,8 +35,8 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Left: lyrics -->
-                <Border Grid.Column="0" Style="{StaticResource GlassPanel}" Padding="16" Margin="0,0,12,0"
-                        BorderBrush="#18FFFFFF" BorderThickness="1" MinHeight="400">
+                <Border Grid.Column="0" Style="{StaticResource GlassPanel}" Padding="14" Margin="0,0,12,0"
+                        BorderBrush="#18FFFFFF" BorderThickness="1">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -104,16 +104,26 @@
                 </Border>
 
                 <!-- Center: track hero -->
-                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                              Margin="0,0,12,0" CanContentScroll="False">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="480">
+                <Grid Grid.Column="1" Margin="0,0,12,0" VerticalAlignment="Top">
+                    <StackPanel HorizontalAlignment="Center" MaxWidth="420">
                         <TextBlock Text="{Binding PageKindLabel}" Style="{StaticResource Muted}" FontSize="11"
                                    FontWeight="Bold" Foreground="{StaticResource AccentBrush}"
-                                   HorizontalAlignment="Center" Margin="0,0,0,8" />
-                        <TextBlock Text="{Binding Title}" FontSize="28" FontWeight="Bold"
-                                   TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,20" />
+                                   HorizontalAlignment="Center" Margin="0,0,0,6" />
+                        <TextBlock FontSize="22" FontWeight="Bold"
+                                   TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,10">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="{Binding Title}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsTrackList}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
 
-                        <Border Width="300" Height="300" CornerRadius="22" Margin="0,0,0,24"
+                        <Border Width="220" Height="220" CornerRadius="18" Margin="0,0,0,14"
                                 HorizontalAlignment="Center" x:Name="CoverBorder"
                                 BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1"
                                 ClipToBounds="True" RenderTransformOrigin="0.5,0.5">
@@ -168,29 +178,29 @@
                             </Grid>
                         </Border>
 
-                        <TextBlock Text="{Binding FocusedTitle}" FontSize="24" FontWeight="Bold"
-                                   TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,6" />
+                        <TextBlock Text="{Binding FocusedTitle}" FontSize="20" FontWeight="Bold"
+                                   TextAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,4" />
                         <TextBlock Text="{Binding FocusedArtistName}" Style="{StaticResource Subtle}"
-                                   FontSize="16" TextAlignment="Center" Margin="0,0,0,10" />
+                                   FontSize="14" TextAlignment="Center" Margin="0,0,0,8" />
 
-                        <Border Width="64" Height="64" CornerRadius="32" ClipToBounds="True" Margin="0,0,0,12"
+                        <Border Width="48" Height="48" CornerRadius="24" ClipToBounds="True" Margin="0,0,0,8"
                                 HorizontalAlignment="Center"
                                 BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1"
                                 Visibility="{Binding ArtistPictureUrl, Converter={StaticResource NullToVisibility}}">
                             <Image img:ImageLoader.SourceUrl="{Binding ArtistPictureUrl}"
                                    img:ImageLoader.DecodeWidth="128" Stretch="UniformToFill" />
                         </Border>
-                        <TextBlock Text="{Binding ArtistBio}" Style="{StaticResource Muted}" FontSize="12"
-                                   TextWrapping="Wrap" TextAlignment="Center" MaxWidth="360" Margin="0,0,0,12"
+                        <TextBlock Text="{Binding ArtistBio}" Style="{StaticResource Muted}" FontSize="11"
+                                   TextWrapping="Wrap" TextAlignment="Center" MaxWidth="340" Margin="0,0,0,8"
                                    Visibility="{Binding ArtistBio, Converter={StaticResource NullToVisibility}}" />
                         <TextBlock Text="{Binding FocusedInfoLine}" Style="{StaticResource Muted}"
-                                   FontSize="12" TextAlignment="Center" Margin="0,0,0,16"
+                                   FontSize="11" TextAlignment="Center" Margin="0,0,0,8"
                                    Visibility="{Binding FocusedTrack, Converter={StaticResource NullToVisibility}}" />
-                        <TextBlock Text="{Binding MetaLine}" Style="{StaticResource Muted}" FontSize="12"
-                                   TextAlignment="Center" Margin="0,0,0,20" />
+                        <TextBlock Text="{Binding MetaLine}" Style="{StaticResource Muted}" FontSize="11"
+                                   TextAlignment="Center" Margin="0,0,0,12" />
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button Style="{StaticResource PlayButton}" Width="54" Height="54"
+                            <Button Style="{StaticResource PlayButton}" Width="48" Height="48"
                                     Command="{Binding PlayTrackCommand}" CommandParameter="{Binding FocusedTrack}"
                                     IsEnabled="{Binding HasTracks}" ToolTip="Play">
                                 <Path Data="{StaticResource IconPlay}" Fill="Black" Stretch="Uniform" Width="22" Height="22" />
@@ -220,13 +230,13 @@
                         </StackPanel>
 
                         <TextBlock Text="{Binding DescriptionLine}" Style="{StaticResource Muted}" FontSize="11"
-                                   TextWrapping="Wrap" TextAlignment="Center" Margin="0,20,0,0" MaxWidth="360"
+                                   TextWrapping="Wrap" TextAlignment="Center" Margin="0,12,0,0" MaxWidth="340"
                                    Visibility="{Binding DescriptionLine, Converter={StaticResource NullToVisibility}}" />
                     </StackPanel>
-                </ScrollViewer>
+                </Grid>
 
                 <!-- Right: track list -->
-                <Border Grid.Column="2" Style="{StaticResource GlassPanel}" Padding="0" MinHeight="400"
+                <Border Grid.Column="2" Style="{StaticResource GlassPanel}" Padding="0"
                         BorderBrush="#18FFFFFF" BorderThickness="1">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -234,9 +244,9 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <StackPanel Grid.Row="0" Margin="18,18,18,12">
-                            <TextBlock Text="Tracks" FontSize="18" FontWeight="Bold" />
-                            <TextBlock Text="{Binding MetaLine}" Style="{StaticResource Muted}" FontSize="12" Margin="0,4,0,0" />
+                        <StackPanel Grid.Row="0" Margin="14,14,14,8">
+                            <TextBlock Text="Tracks" FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text="{Binding MetaLine}" Style="{StaticResource Muted}" FontSize="11" Margin="0,2,0,0" />
                         </StackPanel>
 
                         <TextBlock Grid.Row="1" Text="Loading…" Style="{StaticResource Muted}"

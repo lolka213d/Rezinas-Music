@@ -147,7 +147,7 @@
                                  Visibility="{Binding LikeCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}" />
             <Button Style="{StaticResource IconButton}" Width="32" Height="32"
                     Command="{Binding RemoveCommand, ElementName=Root}"
-                    CommandParameter="{Binding CommandParameter, ElementName=Root}"
+                    CommandParameter="{Binding Track, ElementName=Root}"
                     Visibility="{Binding RemoveCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}">
                 <Path Style="{StaticResource IconPath}" Data="{StaticResource IconDelete}" Width="14" Height="14" />
             </Button>

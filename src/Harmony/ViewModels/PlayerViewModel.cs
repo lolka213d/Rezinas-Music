@@ -138,9 +138,6 @@ public partial class PlayerViewModel : ObservableObject
         }
         _savedOrder = _queue.ToList();
 
-        if (IsShuffle)
-            ShuffleQueueInPlace(keepCurrent: false);
-
         _index = _queue.FindIndex(t =>
             t != null && t.Source == start.Source && t.SourceId == start.SourceId);
         if (_index < 0)
@@ -159,6 +156,19 @@ public partial class PlayerViewModel : ObservableObject
     }
 
     public Task PlaySingleAsync(Track track) => PlayQueueAsync(new[] { track }, track);
+
+    /// <summary>Jump to a track already in the active queue without rebuilding or reshuffling it.</summary>
+    public Task JumpToQueueTrackAsync(Track track)
+    {
+        if (track == null) return Task.CompletedTask;
+        var idx = _queue.FindIndex(t => t != null && t.Matches(track));
+        if (idx < 0)
+            return PlayQueueAsync(new[] { track }, track);
+
+        Interlocked.Increment(ref _playSession);
+        _index = idx;
+        return PlayCurrentAsync();
+    }
 
     /// <summary>Restore last track in the player bar without starting playback.</summary>
     public async Task RestoreLastPlaybackAsync()

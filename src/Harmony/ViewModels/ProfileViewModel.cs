@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Harmony.Helpers;
 using Harmony.Models;
 using Harmony.Services;
 using Harmony.Services.Interfaces;
@@ -38,8 +39,15 @@ public sealed class ProfileAlbumCard
 public sealed class ProfilePlaylistCard
 {
     public required Playlist Playlist { get; init; }
+    public IReadOnlyList<string?> Thumbnails { get; init; } = [];
+
     public string Title => Playlist.Name;
     public int TrackCount => Playlist.TrackCount;
+
+    public string? Thumbnail0 => Thumbnails.Count > 0 ? Thumbnails[0] : null;
+    public string? Thumbnail1 => Thumbnails.Count > 1 ? Thumbnails[1] : null;
+    public string? Thumbnail2 => Thumbnails.Count > 2 ? Thumbnails[2] : null;
+    public string? Thumbnail3 => Thumbnails.Count > 3 ? Thumbnails[3] : null;
 
     public string Subtitle => TrackCount switch
     {
@@ -48,7 +56,8 @@ public sealed class ProfilePlaylistCard
         _ => $"{TrackCount} треков"
     };
 
-    public static ProfilePlaylistCard From(Playlist playlist) => new() { Playlist = playlist };
+    public static ProfilePlaylistCard From(Playlist playlist, IReadOnlyList<string?> thumbnails) =>
+        new() { Playlist = playlist, Thumbnails = thumbnails };
 }
 
 /// <summary>User profile: install date and albums.</summary>
@@ -114,7 +123,10 @@ public partial class ProfileViewModel : ObservableObject
     {
         Playlists.Clear();
         foreach (var playlist in await _playlists.GetPlaylistsAsync())
-            Playlists.Add(ProfilePlaylistCard.From(playlist));
+        {
+            var thumbs = await PlaylistCoverHelper.GetThumbnailsAsync(_playlists, playlist.Id);
+            Playlists.Add(ProfilePlaylistCard.From(playlist, thumbs));
+        }
         HasPlaylists = Playlists.Count > 0;
     }
 
