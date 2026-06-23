@@ -9,7 +9,7 @@
   --violet: #7c3aed;
   --cyan: #38bdf8;
   --radius: 18px;
-  --ratio-wide: 1285 / 818;
+  --ratio-wide: 1280 / 814;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
