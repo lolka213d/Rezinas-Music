@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.2
+
+- Full UI localization pass — lyrics, history, favorites, profile, album/artist views, player bar, and dialogs
+- Track row fix: play/add-to-playlist now uses the correct track in lists
+- Playlist tracks default to custom order instead of sorting by title
+- Unsynced lyrics timing improved (shared sync helper, better duration scaling)
+- Discord Rich Presence status text follows app language
+- Landing page at GitHub Pages with app screenshots and auto-updated download
+
 ## 1.2.1
 
 - Discord Rich Presence with app logo (`rezinas_logo`) and track artwork
