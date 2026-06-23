@@ -34,7 +34,7 @@
                     <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="{Binding UserName}" FontSize="32" FontWeight="Bold" />
                         <TextBlock Margin="0,8,0,0" Foreground="#D8FFFFFF" FontSize="14">
-                            <Run Text="{Binding Loc.ProfileInstalled}" />
+                            <Run Text="{Binding Loc.ProfileInstalled, Mode=OneWay}" />
                             <Run Text="{Binding InstalledDisplay, Mode=OneWay}" FontWeight="SemiBold" />
                         </TextBlock>
                     </StackPanel>

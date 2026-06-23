@@ -159,7 +159,7 @@
         </Border>
 
         <Grid Grid.Row="2" ClipToBounds="False">
-            <views:AmbientBackground />
+            <views:AmbientBackground x:Name="AmbientLayer" />
 
             <ContentControl x:Name="PageHost" Content="{Binding CurrentPage}"
                             VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />

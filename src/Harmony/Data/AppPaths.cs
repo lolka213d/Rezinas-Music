@@ -16,17 +16,16 @@ public static class AppPaths
 
     private const string LegacyFolderName = "Harmony";
 
-
+    /// <summary>Override data folder (mobile uses FileSystem.AppDataDirectory).</summary>
+    public static Func<string>? DataFolderOverride { get; set; }
 
     /// <summary>Per-user data folder, e.g. %LOCALAPPDATA%\RezinasMusic.</summary>
-
     public static string DataFolder
-
     {
-
         get
-
         {
+            if (DataFolderOverride != null)
+                return DataFolderOverride();
 
             var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 

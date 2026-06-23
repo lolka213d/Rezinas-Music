@@ -5,7 +5,7 @@
              xmlns:views="clr-namespace:Harmony.Views"
              MinHeight="84"
              ClipToBounds="False">
-    <Border Style="{StaticResource GlassPlayerBar}" ClipToBounds="False">
+    <Border x:Name="ChromeBorder" Style="{StaticResource GlassPlayerBar}" ClipToBounds="False">
         <Grid ClipToBounds="False">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2.2*" MinWidth="180" />
@@ -67,7 +67,7 @@
                             Margin="8,0" Width="36" Height="36">
                         <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPrevious}" Width="16" Height="16" />
                     </Button>
-                    <Button Style="{StaticResource RzPlayerPlayButton}" Margin="10,0"
+                    <Button x:Name="PlayButton" Style="{StaticResource RzPlayerPlayButton}" Margin="10,0"
                             Command="{Binding PlayPauseCommand}" IsEnabled="{Binding HasTrack}">
                         <Path Stretch="Uniform" Width="18" Height="18" Fill="White">
                             <Path.Style>

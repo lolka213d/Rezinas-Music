@@ -200,6 +200,7 @@ public sealed class LibraryBackupService
         MediaKeysEnabled = s.MediaKeysEnabled,
         ShowHomeAlbums = s.ShowHomeAlbums,
         MiniPlayerInTray = s.MiniPlayerInTray,
+        ReduceGpuUsage = s.ReduceGpuUsage,
         CompactTrackLists = s.CompactTrackLists,
         SleepTimerMinutes = s.SleepTimerMinutes,
         CheckForUpdates = s.CheckForUpdates,

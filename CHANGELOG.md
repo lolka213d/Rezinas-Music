@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.3
+
+- Home: removed Quick access grid; featured and continue-listening no longer show two single-track rows at once
+- Playlist track rows: fixed duration overlapping action buttons on hover
+- Create playlist dialog: cleaner layout, search placeholder, selected track count
+- Favorites: «Unlike all» button to clear every liked song
+- Profile: fixed localization binding crash on open
+
 ## 1.2.2
 
 - Full UI localization pass — lyrics, history, favorites, profile, album/artist views, player bar, and dialogs

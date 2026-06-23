@@ -24,6 +24,7 @@ public static class DatabaseMigrator
         TryAddColumn(db, "UserSettings", "MediaKeysEnabled", "INTEGER NOT NULL DEFAULT 1");
         TryAddColumn(db, "UserSettings", "ShowHomeAlbums", "INTEGER NOT NULL DEFAULT 1");
         TryAddColumn(db, "UserSettings", "MiniPlayerInTray", "INTEGER NOT NULL DEFAULT 1");
+        TryAddColumn(db, "UserSettings", "ReduceGpuUsage", "INTEGER NOT NULL DEFAULT 0");
         TryAddColumn(db, "UserSettings", "CompactTrackLists", "INTEGER NOT NULL DEFAULT 0");
         TryAddColumn(db, "UserSettings", "SleepTimerMinutes", "INTEGER NOT NULL DEFAULT 0");
         TryAddColumn(db, "UserSettings", "LastFmEnabled", "INTEGER NOT NULL DEFAULT 0");

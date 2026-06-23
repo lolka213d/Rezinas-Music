@@ -96,10 +96,13 @@ public partial class PlaylistsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task RemoveTrack(Track track)
+    private async Task RemoveTrack(Track? track)
     {
-        if (SelectedPlaylist == null) return;
-        await _playlists.RemoveTrackAsync(SelectedPlaylist.Id, track.Id);
+        if (track == null || SelectedPlaylist == null) return;
+        if (track.Id > 0)
+            await _playlists.RemoveTrackAsync(SelectedPlaylist.Id, track.Id);
+        else
+            await _playlists.RemoveTrackBySourceAsync(SelectedPlaylist.Id, track.Source, track.SourceId);
         await LoadTracksAsync();
     }
 

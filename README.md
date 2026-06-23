@@ -64,10 +64,28 @@ The installer and published `.exe` do **not** include your personal library.
 program/
 ├── Harmony.sln
 ├── docs/screenshots/     # README images
-├── src/Harmony/          # WPF app
+├── src/Harmony/          # WPF desktop app (Windows)
+├── src/Harmony.Mobile/   # Android app (.NET MAUI) — in progress
 ├── installer/            # Inno Setup script
 └── tests/
 ```
+
+## Android app (in progress)
+
+Mobile version uses **.NET MAUI** (`src/Harmony.Mobile/`). Goal: feature parity with the Windows player.
+
+**Requirements:** Android SDK (Android Studio), JDK 17, .NET 8 + MAUI workload.
+
+```powershell
+dotnet workload install maui
+.\scripts\android-build.ps1          # build only
+.\scripts\android-apk.ps1            # release APK to install on phone
+.\scripts\android-run.ps1            # run on USB device or emulator
+```
+
+`-t:Run` needs a connected phone (USB debugging) or a running emulator in Android Studio (Device Manager). If you see `XA0010: No available device`, use one of the options above.
+
+Install [Android Studio](https://developer.android.com/studio) and ensure **Android SDK API 34** is installed (SDK Manager). The project auto-detects SDK at `%LOCALAPPDATA%\Android\Sdk`.
 
 ## License
 

@@ -92,6 +92,9 @@ public class UserSettings
     /// <summary>Minimize to tray; show mini-player menu.</summary>
     public bool MiniPlayerInTray { get; set; } = true;
 
+    /// <summary>Lower GPU use: flat UI, fewer shadow effects (good for gaming).</summary>
+    public bool ReduceGpuUsage { get; set; }
+
     /// <summary>Denser track rows across lists.</summary>
     public bool CompactTrackLists { get; set; }
 

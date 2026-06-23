@@ -52,6 +52,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly LibraryBackupService _backup;
     private readonly SpotifyAuthService _spotifyAuth;
     private readonly SpotifyLibrarySyncService _spotifySync;
+    private readonly UiPerformanceService _uiPerf;
 
     private bool _isLoading;
 
@@ -78,7 +79,8 @@ public partial class SettingsViewModel : ObservableObject
         UpdateCheckService updates,
         LibraryBackupService backup,
         SpotifyAuthService spotifyAuth,
-        SpotifyLibrarySyncService spotifySync)
+        SpotifyLibrarySyncService spotifySync,
+        UiPerformanceService uiPerf)
 
     {
 
@@ -100,6 +102,7 @@ public partial class SettingsViewModel : ObservableObject
         _backup = backup;
         _spotifyAuth = spotifyAuth;
         _spotifySync = spotifySync;
+        _uiPerf = uiPerf;
 
         LogFilePath = log.LogFilePath;
 
@@ -209,6 +212,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _discordPresenceEnabled;
     [ObservableProperty] private bool _gaplessPlayback;
     [ObservableProperty] private bool _miniPlayerWindowEnabled;
+    [ObservableProperty] private bool _reduceGpuUsage;
     [ObservableProperty] private int _offlineCacheLimitMb = 512;
     [ObservableProperty] private string? _syncFolderPath;
     [ObservableProperty] private StatsPeriod _statsPeriod = StatsPeriod.Week;
@@ -283,6 +287,8 @@ public partial class SettingsViewModel : ObservableObject
     public string SleepTimerLabel => _loc.T("settings.sleepTimer");
 
     public string MiniTrayLabel => _loc.T("settings.miniTray");
+    public string ReduceGpuUsageLabel => _loc.T("settings.reduceGpuUsage");
+    public string ReduceGpuUsageHint => _loc.T("settings.reduceGpuUsageHint");
 
     public string EqualizerLabel => _loc.T("settings.equalizer");
     public string LastFmLabel => _loc.T("settings.lastFm");
@@ -382,6 +388,7 @@ public partial class SettingsViewModel : ObservableObject
         CrossfadeMs = s.CrossfadeMs;
         SleepTimerMinutes = s.SleepTimerMinutes;
         MiniPlayerInTray = s.MiniPlayerInTray;
+        ReduceGpuUsage = s.ReduceGpuUsage;
         CompactTrackLists = s.CompactTrackLists;
         LyricsOffsetSeconds = s.LyricsOffsetSeconds;
         LastFmEnabled = s.LastFmEnabled;
@@ -486,6 +493,11 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnMiniPlayerInTrayChanged(bool value) => ScheduleAutoSave();
 
     partial void OnCompactTrackListsChanged(bool value) => ScheduleAutoSave();
+    partial void OnReduceGpuUsageChanged(bool value)
+    {
+        _uiPerf.ReduceGpuUsage = value;
+        ScheduleAutoSave();
+    }
 
     partial void OnCheckForUpdatesChanged(bool value) => ScheduleAutoSave();
     partial void OnStartWithWindowsChanged(bool value)
@@ -615,6 +627,7 @@ public partial class SettingsViewModel : ObservableObject
         s.CrossfadeMs = Math.Max(0, CrossfadeMs);
         s.SleepTimerMinutes = SleepTimerMinutes;
         s.MiniPlayerInTray = MiniPlayerInTray;
+        s.ReduceGpuUsage = ReduceGpuUsage;
         s.CompactTrackLists = CompactTrackLists;
         s.LyricsOffsetSeconds = LyricsOffsetSeconds;
         s.LastFmEnabled = LastFmEnabled;

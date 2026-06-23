@@ -244,6 +244,17 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel>
+                                    <TextBlock Text="{Binding ReduceGpuUsageLabel}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding ReduceGpuUsageHint}" Style="{StaticResource Muted}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" Style="{StaticResource GlassToggle}" IsChecked="{Binding ReduceGpuUsage}" />
+                            </Grid>
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
                                     <TextBlock Text="{Binding Loc.SettingsShowHomeAlbums}" FontWeight="SemiBold" />
                                     <TextBlock Text="{Binding Loc.SettingsShowHomeAlbumsHint}" Style="{StaticResource Muted}" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" />
                                 </StackPanel>

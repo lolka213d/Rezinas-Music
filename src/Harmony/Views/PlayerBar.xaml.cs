@@ -42,4 +42,10 @@ public partial class PlayerBar : UserControl
         if (!_progressDragging && Vm?.HasTrack == true)
             Vm.EndSeek(ProgressSlider.Value);
     }
+
+    public void ApplyLiteChrome(bool lite)
+    {
+        ChromeBorder.Style = (Style)FindResource(lite ? "GlassPlayerBarLite" : "GlassPlayerBar");
+        PlayButton.Style = (Style)FindResource(lite ? "RzPlayerPlayButtonLite" : "RzPlayerPlayButton");
+    }
 }

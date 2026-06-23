@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Harmony.Helpers;
 using Harmony.Models;
+using Harmony.Services;
 using Harmony.Services.Interfaces;
 using Harmony.Services.Localization;
 
@@ -20,6 +21,7 @@ public partial class LyricsViewModel : ObservableObject
     private readonly ISettingsService _settings;
     private readonly PlayerViewModel _player;
     private readonly ILocalizationService _loc;
+    private readonly UiPerformanceService _uiPerf;
     private CancellationTokenSource? _cts;
     private int _loadGeneration;
     private IReadOnlyList<LyricLineViewModel> _lineList = Array.Empty<LyricLineViewModel>();
@@ -31,12 +33,14 @@ public partial class LyricsViewModel : ObservableObject
         ILyricsService lyricsService,
         ISettingsService settings,
         PlayerViewModel player,
-        ILocalizationService localization)
+        ILocalizationService localization,
+        UiPerformanceService uiPerf)
     {
         _lyricsService = lyricsService;
         _settings = settings;
         _player = player;
         _loc = localization;
+        _uiPerf = uiPerf;
         _loc.LanguageChanged += (_, _) => RefreshLocalizedLabels();
         _player.PropertyChanged += OnPlayerChanged;
     }
@@ -102,6 +106,7 @@ public partial class LyricsViewModel : ObservableObject
 
     partial void OnIsOpenChanged(bool value)
     {
+        _uiPerf.LyricsOpen = value;
         if (!value)
         {
             _cts?.Cancel();

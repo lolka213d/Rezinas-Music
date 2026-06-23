@@ -25,11 +25,13 @@ public partial class MainWindow : Window
 
     private readonly ISettingsService _settings;
     private readonly TrayIconService _tray;
+    private readonly UiPerformanceService _uiPerf;
 
-    public MainWindow(ISettingsService settings, TrayIconService tray)
+    public MainWindow(ISettingsService settings, TrayIconService tray, UiPerformanceService uiPerf)
     {
         _settings = settings;
         _tray = tray;
+        _uiPerf = uiPerf;
         InitializeComponent();
         AppIconHelper.ApplyWindowIcon(this);
         Closing += OnClosing;
@@ -38,6 +40,16 @@ public partial class MainWindow : Window
         {
             UpdateMaximizeIcon();
             ApplyWorkArea();
+            PushWindowState();
+        };
+        IsVisibleChanged += (_, _) => PushWindowState();
+        Activated += (_, _) => PushWindowState();
+        Deactivated += (_, _) => PushWindowState();
+        _uiPerf.Changed += (_, _) => ApplyPerformanceUi();
+        Loaded += (_, _) =>
+        {
+            _uiPerf.ReduceGpuUsage = _settings.Current.ReduceGpuUsage;
+            ApplyPerformanceUi();
         };
 
         InputBindings.Add(new KeyBinding { Key = Key.Space, Modifiers = ModifierKeys.None, Command = PlayerPlayPauseCommand });
@@ -141,11 +153,43 @@ public partial class MainWindow : Window
         if (show)
         {
             _miniPlayer ??= new MiniPlayerWindow(Vm!);
+            _miniPlayer.Closed += (_, _) => _uiPerf.SetMiniPlayerVisible(false);
             _miniPlayer.Show();
+            _uiPerf.SetMiniPlayerVisible(true);
             return;
         }
         _miniPlayer?.Close();
         _miniPlayer = null;
+        _uiPerf.SetMiniPlayerVisible(false);
+    }
+
+    private void PushWindowState() =>
+        _uiPerf.SetMainWindowState(IsVisible, IsActive, WindowState == WindowState.Minimized);
+
+    private void ApplyPerformanceUi()
+    {
+        AmbientLayer.Visibility = _uiPerf.ShouldHideAmbient ? Visibility.Collapsed : Visibility.Visible;
+
+        if (FindName("PageHost") is FrameworkElement host && _uiPerf.ShouldUseLiteChrome)
+            VisualTreeEffectHelper.EnableBitmapCache(host);
+
+        if (_uiPerf.ShouldUseLiteChrome)
+            VisualTreeEffectHelper.StripDropShadows(this);
+
+        FindVisualChild<PlayerBar>(this)?.ApplyLiteChrome(_uiPerf.ShouldUseLiteChrome);
+    }
+
+    private static T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        var count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent);
+        for (var i = 0; i < count; i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+            if (child is T match) return match;
+            var nested = FindVisualChild<T>(child);
+            if (nested != null) return nested;
+        }
+        return null;
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

@@ -86,6 +86,23 @@ public sealed class PlaylistService : IPlaylistService
         }
     }
 
+    public async Task RemoveTrackBySourceAsync(int playlistId, MusicSource source, string sourceId)
+    {
+        if (string.IsNullOrWhiteSpace(sourceId)) return;
+        await using var db = await _factory.CreateDbContextAsync();
+        var item = await db.PlaylistTracks
+            .Include(pt => pt.Track)
+            .FirstOrDefaultAsync(pt => pt.PlaylistId == playlistId
+                && pt.Track != null
+                && pt.Track.Source == source
+                && pt.Track.SourceId == sourceId);
+        if (item != null)
+        {
+            db.PlaylistTracks.Remove(item);
+            await db.SaveChangesAsync();
+        }
+    }
+
     public async Task<IReadOnlyList<Track>> GetTracksAsync(int playlistId)
     {
         var entries = await GetTrackEntriesAsync(playlistId);

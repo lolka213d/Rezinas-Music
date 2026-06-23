@@ -192,7 +192,7 @@
             <!-- Featured hero (compact — height follows content, not image pixels) -->
             <Border CornerRadius="16" Padding="12,10" Margin="0,0,0,20" ClipToBounds="True"
                     BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1"
-                    Visibility="{Binding HasFeatured, Converter={StaticResource BoolToVisibility}}">
+                    Visibility="{Binding ShowFeaturedSpotlight, Converter={StaticResource BoolToVisibility}}">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                         <GradientStop Color="#1AFFFFFF" Offset="0" />
@@ -238,69 +238,6 @@
                     </StackPanel>
                 </Grid>
             </Border>
-
-            <!-- Quick access -->
-            <TextBlock Text="{Binding QuickAccessLabel}" Style="{StaticResource SectionTitle}" FontSize="20" />
-            <ItemsControl ItemsSource="{Binding QuickTiles}" Margin="0,0,0,28">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <UniformGrid Columns="3" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type vm:HomeQuickTile}">
-                        <Button Style="{StaticResource GlassQuickCard}"
-                                Command="{Binding DataContext.OpenQuickTileCommand, RelativeSource={RelativeSource AncestorType={x:Type views:HomeView}}}"
-                                CommandParameter="{Binding}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="48" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="44" Height="44" CornerRadius="12">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#14FFFFFF" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsLikedSongs}" Value="True">
-                                                    <Setter Property="Background">
-                                                        <Setter.Value>
-                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                                <GradientStop Color="#FF7C3AED" Offset="0" />
-                                                                <GradientStop Color="#FF22C55E" Offset="1" />
-                                                            </LinearGradientBrush>
-                                                        </Setter.Value>
-                                                    </Setter>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <Grid>
-                                        <Path Data="{StaticResource IconHeartFilled}" Fill="White" Stretch="Uniform" Width="20" Height="20"
-                                              Visibility="{Binding IsLikedSongs, Converter={StaticResource BoolToVisibility}}" />
-                                        <Path Data="{StaticResource IconHistory}" Fill="{StaticResource TextSecondaryBrush}"
-                                              Stretch="Uniform" Width="20" Height="20"
-                                              Visibility="{Binding IsRecent, Converter={StaticResource BoolToVisibility}}" />
-                                        <Path Data="{StaticResource IconLibrary}" Fill="{StaticResource TextSecondaryBrush}"
-                                              Stretch="Uniform" Width="20" Height="20"
-                                              Visibility="{Binding IsLibrary, Converter={StaticResource BoolToVisibility}}" />
-                                        <Path Data="{StaticResource IconAlbum}" Fill="{StaticResource TextSecondaryBrush}"
-                                              Stretch="Uniform" Width="20" Height="20"
-                                              Visibility="{Binding IsAlbums, Converter={StaticResource BoolToVisibility}}" />
-                                        <Path Data="{StaticResource IconPlaylist}" Fill="{StaticResource TextSecondaryBrush}"
-                                              Stretch="Uniform" Width="20" Height="20"
-                                              Visibility="{Binding IsPlaylist, Converter={StaticResource BoolToVisibility}}" />
-                                    </Grid>
-                                </Border>
-                                <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" />
-                                    <TextBlock Text="{Binding Subtitle}" Style="{StaticResource Muted}" FontSize="11" Margin="0,2,0,0" />
-                                </StackPanel>
-                            </Grid>
-                        </Button>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
 
             <!-- Continue listening -->
             <Border Style="{StaticResource GlassPanel}" Margin="0,0,0,28" Padding="20"

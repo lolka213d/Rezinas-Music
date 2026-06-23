@@ -13,6 +13,7 @@ public sealed class NAudioPlayerService : IAudioPlayerService, IDisposable
     private readonly DispatcherTimer _timer;
     private readonly IAppLog _log;
     private readonly ISettingsService _settings;
+    private readonly UiPerformanceService _uiPerf;
     private float[] _eqBands = [0, 0, 0, 0, 0];
     private readonly object _sync = new();
     private WaveOutEvent? _output;
@@ -22,14 +23,35 @@ public sealed class NAudioPlayerService : IAudioPlayerService, IDisposable
     private bool _suppressEndEvent;
     private int _playGeneration;
 
-    public NAudioPlayerService(IAppLog log, ISettingsService settings)
+    public NAudioPlayerService(IAppLog log, ISettingsService settings, UiPerformanceService uiPerf)
     {
         _log = log;
         _settings = settings;
+        _uiPerf = uiPerf;
         ApplyEqFromSettings();
-        _settings.SettingsChanged += (_, _) => ApplyEqFromSettings();
+        _settings.SettingsChanged += (_, _) =>
+        {
+            ApplyEqFromSettings();
+            _uiPerf.ReduceGpuUsage = _settings.Current.ReduceGpuUsage;
+        };
+        _uiPerf.ReduceGpuUsage = _settings.Current.ReduceGpuUsage;
+        _uiPerf.Changed += (_, _) => SyncPositionTimer();
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _timer.Tick += (_, _) => PositionChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void SyncPositionTimer()
+    {
+        var ms = _uiPerf.PositionUpdateIntervalMs;
+        if (ms <= 0)
+        {
+            _timer.Stop();
+            return;
+        }
+
+        _timer.Interval = TimeSpan.FromMilliseconds(ms);
+        if (State == PlaybackState.Playing)
+            _timer.Start();
     }
 
     public Track? CurrentTrack { get; private set; }

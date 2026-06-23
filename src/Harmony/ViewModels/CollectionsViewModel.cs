@@ -684,17 +684,22 @@ public partial class CollectionsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task RemoveTrack(Track track)
+    private async Task RemoveTrack(Track? track)
     {
+        if (track == null) return;
         if (SelectedKind == CollectionKind.Albums && SelectedAlbum != null)
         {
-            await _albums.RemoveTrackAsync(SelectedAlbum.Id, track.Id);
+            if (track.Id > 0)
+                await _albums.RemoveTrackAsync(SelectedAlbum.Id, track.Id);
             await LoadTracksAsync();
             await LoadAlbumsAsync();
         }
         else if (SelectedKind == CollectionKind.Playlists && SelectedPlaylist != null)
         {
-            await _playlists.RemoveTrackAsync(SelectedPlaylist.Id, track.Id);
+            if (track.Id > 0)
+                await _playlists.RemoveTrackAsync(SelectedPlaylist.Id, track.Id);
+            else
+                await _playlists.RemoveTrackBySourceAsync(SelectedPlaylist.Id, track.Source, track.SourceId);
             await LoadTracksAsync();
         }
     }

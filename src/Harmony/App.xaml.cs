@@ -135,6 +135,7 @@ public partial class App : Application
         services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(60) });
 
         // ----- Services -----
+        services.AddSingleton<UiPerformanceService>();
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<FavoriteLookup>();
         services.AddSingleton<SmartPlaylistService>();

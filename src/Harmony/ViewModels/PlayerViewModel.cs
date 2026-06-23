@@ -31,6 +31,7 @@ public partial class PlayerViewModel : ObservableObject
     private readonly List<Track> _queue = new();
     private List<Track> _savedOrder = new();
     private int _index = -1;
+    private int _trackEndHandling;
     private bool _isSeeking;
     private int _playSession;
     private CancellationTokenSource? _sleepCts;
@@ -518,8 +519,15 @@ public partial class PlayerViewModel : ObservableObject
     {
         if (_queue.Count == 0) return;
         Interlocked.Increment(ref _playSession);
-        _index = (_index + 1) % _queue.Count;
-        await PlayCurrentAsync();
+
+        if (TryAdvanceIndex())
+        {
+            await PlayCurrentAsync();
+            return;
+        }
+
+        if (ShouldExtendQueueAfterEnd())
+            await ExtendRadioAsync();
     }
 
     [RelayCommand]
@@ -531,8 +539,14 @@ public partial class PlayerViewModel : ObservableObject
             _player.Seek(TimeSpan.Zero);
             return;
         }
+
         Interlocked.Increment(ref _playSession);
-        _index = (_index - 1 + _queue.Count) % _queue.Count;
+        if (_index <= 0 && RepeatMode != RepeatMode.All)
+            return;
+
+        _index = RepeatMode == RepeatMode.All
+            ? (_index - 1 + _queue.Count) % _queue.Count
+            : _index - 1;
         await PlayCurrentAsync();
     }
 
@@ -546,43 +560,63 @@ public partial class PlayerViewModel : ObservableObject
     private async Task OnTrackEndedAsync()
     {
         if (_queue.Count == 0) return;
+        if (Interlocked.CompareExchange(ref _trackEndHandling, 1, 0) != 0) return;
 
-        if (IsRadioActive)
+        try
         {
-            if (_index < _queue.Count - 1)
+            switch (RepeatMode)
             {
-                _index++;
-                await PlayCurrentAsync();
-            }
-            else
-            {
-                await ExtendRadioAsync();
-            }
-            return;
-        }
-
-        switch (RepeatMode)
-        {
-            case RepeatMode.One:
-                await PlayCurrentAsync();
-                return;
-            case RepeatMode.All:
-                _index = (_index + 1) % _queue.Count;
-                await PlayCurrentAsync();
-                return;
-            default:
-                if (_index < _queue.Count - 1)
-                {
-                    _index++;
+                case RepeatMode.One:
                     await PlayCurrentAsync();
-                }
-                else if (_settings.Current.RadioEnabled)
-                {
+                    return;
+                case RepeatMode.All:
+                    _index = (_index + 1) % _queue.Count;
+                    await PlayCurrentAsync();
+                    return;
+            }
+
+            if (IsRadioActive)
+            {
+                if (TryAdvanceIndex())
+                    await PlayCurrentAsync();
+                else
                     await ExtendRadioAsync();
-                }
-                break;
+                return;
+            }
+
+            if (TryAdvanceIndex())
+                await PlayCurrentAsync();
+            else if (ShouldExtendQueueAfterEnd())
+                await ExtendRadioAsync();
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _trackEndHandling, 0);
         }
     }
+
+    /// <summary>Move to the next queue index. Returns false when repeat is off and the queue has ended.</summary>
+    private bool TryAdvanceIndex()
+    {
+        if (_queue.Count == 0) return false;
+
+        if (_index < _queue.Count - 1)
+        {
+            _index++;
+            return true;
+        }
+
+        if (RepeatMode == RepeatMode.All)
+        {
+            _index = 0;
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool ShouldExtendQueueAfterEnd() =>
+        IsRadioActive || _settings.Current.RadioEnabled;
 
     private bool IsRadioActive =>
         _radioContext.ActiveStation != null && _settings.Current.RadioEnabled;

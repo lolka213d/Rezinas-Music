@@ -4,7 +4,8 @@
              xmlns:vm="clr-namespace:Harmony.ViewModels"
              xmlns:views="clr-namespace:Harmony.Views"
              xmlns:cmp="clr-namespace:Harmony.Components"
-             xmlns:models="clr-namespace:Harmony.Models">
+             xmlns:models="clr-namespace:Harmony.Models"
+             xmlns:img="clr-namespace:Harmony.Helpers">
 
     <Grid MinHeight="320" VerticalAlignment="Stretch">
         <!-- ===== Playlist browse (grid) ===== -->
@@ -91,7 +92,7 @@
                             <Border Grid.Column="0" Width="232" Height="232" CornerRadius="8" ClipToBounds="True"
                                     Margin="0,0,28,0" Background="#FF282828">
                                 <Grid>
-                                    <Image Source="{Binding PrimaryCoverUrl}" Stretch="UniformToFill"
+                                    <Image img:ImageLoader.SourceUrl="{Binding PrimaryCoverUrl}" Stretch="UniformToFill"
                                            Visibility="{Binding ShowSingleCover, Converter={StaticResource BoolToVisibility}}" />
                                     <Grid Visibility="{Binding ShowMosaicCover, Converter={StaticResource BoolToVisibility}}">
                                         <Grid.RowDefinitions>
@@ -102,10 +103,10 @@
                                             <ColumnDefinition />
                                             <ColumnDefinition />
                                         </Grid.ColumnDefinitions>
-                                        <Image Grid.Row="0" Grid.Column="0" Source="{Binding CoverMosaicTracks[0].ThumbnailUrl}" Stretch="UniformToFill" />
-                                        <Image Grid.Row="0" Grid.Column="1" Source="{Binding CoverMosaicTracks[1].ThumbnailUrl}" Stretch="UniformToFill" />
-                                        <Image Grid.Row="1" Grid.Column="0" Source="{Binding CoverMosaicTracks[2].ThumbnailUrl}" Stretch="UniformToFill" />
-                                        <Image Grid.Row="1" Grid.Column="1" Source="{Binding CoverMosaicTracks[3].ThumbnailUrl}" Stretch="UniformToFill" />
+                                        <Image Grid.Row="0" Grid.Column="0" img:ImageLoader.SourceUrl="{Binding CoverMosaicTracks[0].ThumbnailUrl}" Stretch="UniformToFill" />
+                                        <Image Grid.Row="0" Grid.Column="1" img:ImageLoader.SourceUrl="{Binding CoverMosaicTracks[1].ThumbnailUrl}" Stretch="UniformToFill" />
+                                        <Image Grid.Row="1" Grid.Column="0" img:ImageLoader.SourceUrl="{Binding CoverMosaicTracks[2].ThumbnailUrl}" Stretch="UniformToFill" />
+                                        <Image Grid.Row="1" Grid.Column="1" img:ImageLoader.SourceUrl="{Binding CoverMosaicTracks[3].ThumbnailUrl}" Stretch="UniformToFill" />
                                     </Grid>
                                     <Path Data="{StaticResource IconPlaylist}" Fill="#88FFFFFF"
                                           Stretch="Uniform" Width="72" Height="72"
@@ -264,7 +265,8 @@
                                                 <Grid>
                                                     <Path Data="{StaticResource IconNote}" Fill="{StaticResource TextMutedBrush}"
                                                           Stretch="Uniform" Width="16" Height="16" />
-                                                    <Image Source="{Binding Track.ThumbnailUrl}" Stretch="UniformToFill" />
+                                                    <Image img:ImageLoader.SourceUrl="{Binding Track.ThumbnailUrl}"
+                                                           img:ImageLoader.DecodeWidth="88" Stretch="UniformToFill" />
                                                     <Border Background="#99000000" Visibility="Collapsed">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
@@ -297,51 +299,59 @@
                                                        Style="{StaticResource Muted}" FontSize="13" VerticalAlignment="Center"
                                                        TextTrimming="CharacterEllipsis" />
 
-                                            <TextBlock Grid.Column="5" Text="{Binding Track.DurationDisplay}"
-                                                       FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,8,0">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Muted}">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
+                                            <Grid Grid.Column="5" Width="120" HorizontalAlignment="Right"
+                                                  VerticalAlignment="Center" Margin="0,0,4,0">
+                                                <TextBlock Text="{Binding Track.DurationDisplay}"
+                                                           FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource Muted}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                                            VerticalAlignment="Center" Visibility="Collapsed">
+                                                    <StackPanel.Style>
+                                                        <Style TargetType="StackPanel">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </StackPanel.Style>
+                                                    <Button Style="{StaticResource IconButton}" Width="32" Height="32" Margin="0,0,4,0"
+                                                            Command="{Binding DataContext.RemoveTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding Track}"
+                                                            ToolTip="{Binding DataContext.RemoveFromPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                        <Path Data="{StaticResource IconDelete}" Fill="{StaticResource TextSecondaryBrush}"
+                                                              Stretch="Uniform" Width="18" Height="18" />
+                                                    </Button>
+                                                    <Button Style="{StaticResource IconButton}" Width="32" Height="32" Margin="0,0,4,0"
+                                                            Command="{Binding DataContext.AddTrackElsewhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding Track}" ToolTip="{Binding DataContext.AddToPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                        <Path Data="{StaticResource IconAdd}" Fill="{StaticResource TextSecondaryBrush}"
+                                                              Stretch="Uniform" Width="18" Height="18" />
+                                                    </Button>
+                                                    <Button Style="{StaticResource IconButton}" Width="32" Height="32"
+                                                            Click="OpenTrackMenu_Click">
+                                                        <Path Data="{StaticResource IconMore}" Fill="{StaticResource TextSecondaryBrush}"
+                                                              Stretch="Uniform" Width="18" Height="18" />
+                                                        <Button.ContextMenu>
+                                                            <ContextMenu>
+                                                                <MenuItem Header="{Binding DataContext.RemoveFromPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                          Command="{Binding DataContext.RemoveTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                          CommandParameter="{Binding Track}" />
+                                                            </ContextMenu>
+                                                        </Button.ContextMenu>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
                                         </Grid>
-
-                                        <StackPanel Grid.Column="5" Grid.ColumnSpan="1" Orientation="Horizontal"
-                                                    HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                    Panel.ZIndex="2" Visibility="Collapsed">
-                                            <StackPanel.Style>
-                                                <Style TargetType="StackPanel">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </StackPanel.Style>
-                                            <Button Style="{StaticResource IconButton}" Width="32" Height="32" Margin="0,0,4,0"
-                                                    Command="{Binding DataContext.AddTrackElsewhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding Track}" ToolTip="{Binding DataContext.AddToPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}">
-                                                <Path Data="{StaticResource IconAdd}" Fill="{StaticResource TextSecondaryBrush}"
-                                                      Stretch="Uniform" Width="18" Height="18" />
-                                            </Button>
-                                            <Button Style="{StaticResource IconButton}" Width="32" Height="32"
-                                                    Click="OpenTrackMenu_Click">
-                                                <Path Data="{StaticResource IconMore}" Fill="{StaticResource TextSecondaryBrush}"
-                                                      Stretch="Uniform" Width="18" Height="18" />
-                                                <Button.ContextMenu>
-                                                    <ContextMenu>
-                                                        <MenuItem Header="{Binding DataContext.RemoveFromPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                  Command="{Binding DataContext.RemoveTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                  CommandParameter="{Binding Track}" />
-                                                    </ContextMenu>
-                                                </Button.ContextMenu>
-                                            </Button>
-                                        </StackPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

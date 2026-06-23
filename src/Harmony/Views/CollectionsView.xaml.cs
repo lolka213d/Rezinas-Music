@@ -11,6 +11,7 @@ public partial class CollectionsView
     {
         if (sender is not Button btn || btn.ContextMenu == null) return;
         btn.ContextMenu.PlacementTarget = btn;
+        btn.ContextMenu.DataContext = btn.DataContext;
         btn.ContextMenu.IsOpen = true;
     }
 }

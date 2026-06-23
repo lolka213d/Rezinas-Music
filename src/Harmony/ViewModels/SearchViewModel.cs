@@ -20,14 +20,6 @@ namespace Harmony.ViewModels;
 
 
 
-public enum SearchTab { All, Tracks, Albums, Artists, Podcasts }
-
-public enum SearchSourceFilter { All, Deezer, Local }
-
-public enum SearchDurationFilter { Any, Short, Medium, Long }
-
-
-
 /// <summary>Search with tabs, dedup, live search.</summary>
 
 public partial class SearchViewModel : ObservableObject
@@ -629,17 +621,11 @@ public partial class SearchViewModel : ObservableObject
 
 
     [RelayCommand]
-
     private async Task AddToPlaylist(Track track)
-
     {
-
         var owner = Application.Current.MainWindow;
-
         if (owner != null)
-
             await Views.AddToPlaylistDialog.ShowAsync(_playlists, track, owner);
-
     }
 
     private string BuildEffectiveQuery(string query)

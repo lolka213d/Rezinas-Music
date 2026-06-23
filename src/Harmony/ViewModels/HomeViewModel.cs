@@ -168,7 +168,7 @@ public partial class HomeViewModel : ObservableObject
             var lang = _settings.Current.Language;
             _loadedFeedLanguage = lang;
             var cachedTask = _feedCache.ReadAsync(lang);
-            var quickTask = BuildQuickTilesAsync();
+            var quickTask = Task.CompletedTask;
             var recentTask = _history.GetRecentTracksAsync(24);
             var favoritesTask = _favorites.GetFavoritesAsync(60);
 
@@ -386,6 +386,7 @@ public partial class HomeViewModel : ObservableObject
     {
         FeaturedTrack = _player.CurrentTrack ?? _chartTracks.FirstOrDefault() ?? _recentTracks.FirstOrDefault();
         HasFeatured = FeaturedTrack != null;
+        OnPropertyChanged(nameof(ShowFeaturedSpotlight));
 
         RecentCards.Clear();
         foreach (var t in _recentTracks.Take(12))
@@ -465,21 +466,38 @@ public partial class HomeViewModel : ObservableObject
             ContinueTrack = cur;
             ContinueProgress = _player.PositionSeconds / _player.DurationSeconds;
             HasContinue = true;
+            OnPropertyChanged(nameof(ShowFeaturedSpotlight));
             return;
         }
 
-        if (_recentTracks.FirstOrDefault() is { } recent)
+        var s = _settings.Current;
+        if (s.LastPlayedSource is int rawSource
+            && Enum.IsDefined(typeof(MusicSource), rawSource)
+            && !string.IsNullOrWhiteSpace(s.LastPlayedSourceId)
+            && s.LastPlayedPositionSeconds > 12)
         {
-            ContinueTrack = recent;
-            ContinueProgress = 0;
-            HasContinue = true;
-            return;
+            var saved = _recentTracks.FirstOrDefault(t =>
+                t.Source == (MusicSource)rawSource && t.SourceId == s.LastPlayedSourceId);
+            if (saved != null)
+            {
+                ContinueTrack = saved;
+                ContinueProgress = saved.DurationSeconds > 0
+                    ? Math.Clamp(s.LastPlayedPositionSeconds / saved.DurationSeconds, 0, 1)
+                    : 0;
+                HasContinue = true;
+                OnPropertyChanged(nameof(ShowFeaturedSpotlight));
+                return;
+            }
         }
 
         ContinueTrack = null;
         ContinueProgress = 0;
         HasContinue = false;
+        OnPropertyChanged(nameof(ShowFeaturedSpotlight));
     }
+
+    /// <summary>Featured hero is hidden when continue-listening is shown to avoid duplicate single-track rows.</summary>
+    public bool ShowFeaturedSpotlight => HasFeatured && !HasContinue;
 
     private void BuildRecommendations()
     {

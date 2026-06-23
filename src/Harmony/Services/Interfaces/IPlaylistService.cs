@@ -18,6 +18,9 @@ public interface IPlaylistService
 
     Task RemoveTrackAsync(int playlistId, int trackId);
 
+    /// <summary>Remove by provider id when track entity id is unavailable.</summary>
+    Task RemoveTrackBySourceAsync(int playlistId, MusicSource source, string sourceId);
+
     /// <summary>Tracks of a playlist in their stored order.</summary>
     Task<IReadOnlyList<Track>> GetTracksAsync(int playlistId);
 

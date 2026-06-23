@@ -74,20 +74,33 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
 
 
     public async Task<string?> ResolveFullStreamAsync(Track track, CancellationToken cancellationToken = default)
-
     {
+        var cacheKey = $"{track.Source}:{track.SourceId}";
 
-        if (!NeedsFullStream(track))
-
+        // Refresh expiring provider URLs before deciding we already have a full stream.
+        if (track.Source == MusicSource.SoundCloud)
         {
-
-            _log.Info($"Stream OK without YouTube: {track.ArtistName} — {track.Title}");
-
-            return track.StreamUrl;
-
+            var scUrl = await RefreshSoundCloudStreamAsync(track, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(scUrl))
+            {
+                track.StreamUrl = scUrl;
+                return scUrl;
+            }
         }
 
-        var cacheKey = $"{track.Source}:{track.SourceId}";
+        if (track.Source == MusicSource.Deezer && !string.IsNullOrWhiteSpace(track.SourceId))
+        {
+            var preview = await RefreshDeezerPreviewAsync(track.SourceId, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(preview))
+                track.StreamUrl = preview;
+        }
+
+        if (!NeedsFullStream(track))
+        {
+            _log.Info($"Stream OK without YouTube: {track.ArtistName} — {track.Title}");
+            return track.StreamUrl;
+        }
+
         if (_urlCache.TryGetValue(cacheKey, out var cached))
         {
             _log.Info($"Stream cache hit: {track.Title}");
@@ -102,62 +115,61 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             _videoIdCache.TryRemove(cacheKey, out _);
         }
 
-
-
-        var query = $"{track.ArtistName} {track.Title} official audio".Trim();
-
-        if (string.IsNullOrWhiteSpace(query))
-
+        var baseQuery = $"{track.ArtistName} {track.Title}".Trim();
+        if (string.IsNullOrWhiteSpace(baseQuery))
         {
-
             _log.Warning($"Empty search query for track '{track.Title}', using preview.");
-
             return track.StreamUrl;
-
         }
 
+        var queries = new[]
+        {
+            $"{baseQuery} official audio",
+            baseQuery
+        };
 
+        foreach (var query in queries.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            _log.Info($"Resolving online stream via YouTube: {query}");
+            var streamUrl = await TryYouTubeSearchAsync(track, query, cacheKey, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(streamUrl))
+                return streamUrl;
+        }
 
-        _log.Info($"Resolving online stream via YouTube: {query}");
+        _log.Warning($"YouTube + Piped: no stream for '{baseQuery}'");
 
+        if (!string.IsNullOrWhiteSpace(track.StreamUrl))
+            _log.Warning($"Falling back to preview URL for '{track.Title}'");
+
+        return track.StreamUrl;
+    }
+
+    private async Task<string?> TryYouTubeSearchAsync(
+        Track track, string query, string cacheKey, CancellationToken cancellationToken)
+    {
         var candidates = 0;
         await foreach (var video in _youtube.Search.GetVideosAsync(query, cancellationToken))
         {
             if (++candidates > MaxSearchCandidates)
                 break;
+
             var videoDuration = video.Duration?.TotalSeconds ?? 0;
-
-            if (videoDuration < 45)
-
+            if (videoDuration < 30)
             {
-
                 _log.Info($"Skip short video '{video.Title}' ({videoDuration:F0}s)");
-
                 continue;
-
             }
-
-
 
             if (track.DurationSeconds > 0)
-
             {
-
                 var delta = Math.Abs(videoDuration - track.DurationSeconds);
-
-                if (delta > 45)
-
+                var tolerance = track.DurationSeconds < 180 ? 75 : 45;
+                if (delta > tolerance)
                 {
-
                     _log.Info($"Skip duration mismatch '{video.Title}' ({videoDuration:F0}s vs {track.DurationSeconds}s)");
-
                     continue;
-
                 }
-
             }
-
-
 
             var videoId = video.Id.Value;
             _videoIdCache[cacheKey] = videoId;
@@ -165,7 +177,6 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             _log.Info($"Trying YouTube video: {video.Title} ({videoId})");
 
             var streamUrl = await TryYoutubeExplodeStreamUrlAsync(video.Id, cancellationToken);
-
             if (!string.IsNullOrWhiteSpace(streamUrl))
             {
                 _log.Info($"Online stream ready (YouTube): {track.Title}");
@@ -173,7 +184,6 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             }
 
             streamUrl = await TryPipedStreamUrlAsync(videoId, cancellationToken);
-
             if (!string.IsNullOrWhiteSpace(streamUrl))
             {
                 _log.Info($"Online stream ready (Piped): {track.Title}");
@@ -181,20 +191,73 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             }
         }
 
+        return null;
+    }
 
+    private async Task<string?> RefreshDeezerPreviewAsync(string sourceId, CancellationToken ct)
+    {
+        try
+        {
+            var url = $"https://api.deezer.com/track/{sourceId}";
+            using var resp = await _http.GetAsync(url, ct);
+            if (!resp.IsSuccessStatusCode) return null;
+            var json = await resp.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
+            return json.TryGetProperty("preview", out var p) ? p.GetString() : null;
+        }
+        catch (Exception ex)
+        {
+            _log.Warning($"Deezer preview refresh failed for {sourceId}: {ex.Message}");
+            return null;
+        }
+    }
 
-        _log.Warning($"YouTube + Piped: no stream for '{query}'");
+    private async Task<string?> RefreshSoundCloudStreamAsync(Track track, CancellationToken ct)
+    {
+        var clientId = _settings.Current.SoundCloudClientId;
+        if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(track.SourceId))
+            return null;
 
+        try
+        {
+            var metaUrl =
+                $"https://api-v2.soundcloud.com/tracks/{track.SourceId}?client_id={Uri.EscapeDataString(clientId)}";
+            using var resp = await _http.GetAsync(metaUrl, ct);
+            if (!resp.IsSuccessStatusCode) return null;
 
+            var json = await resp.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
+            var progressiveUrl = FindSoundCloudProgressiveUrl(json);
+            if (progressiveUrl == null) return null;
 
-        if (!string.IsNullOrWhiteSpace(track.StreamUrl))
+            var resolveUrl = $"{progressiveUrl}?client_id={Uri.EscapeDataString(clientId)}";
+            using var streamResp = await _http.GetAsync(resolveUrl, ct);
+            if (!streamResp.IsSuccessStatusCode) return null;
 
-            _log.Warning($"Falling back to preview URL for '{track.Title}'");
+            var streamJson = await streamResp.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: ct);
+            return streamJson.TryGetProperty("url", out var u) ? u.GetString() : null;
+        }
+        catch (Exception ex)
+        {
+            _log.Warning($"SoundCloud stream refresh failed for '{track.Title}': {ex.Message}");
+            return null;
+        }
+    }
 
+    private static string? FindSoundCloudProgressiveUrl(JsonElement track)
+    {
+        if (!track.TryGetProperty("media", out var media) ||
+            !media.TryGetProperty("transcodings", out var transcodings))
+            return null;
 
+        foreach (var t in transcodings.EnumerateArray())
+        {
+            var protocol = t.TryGetProperty("format", out var fmt) && fmt.TryGetProperty("protocol", out var p)
+                ? p.GetString()
+                : null;
+            if (protocol == "progressive" && t.TryGetProperty("url", out var u))
+                return u.GetString();
+        }
 
-        return track.StreamUrl;
-
+        return null;
     }
 
     private string? RememberStream(string cacheKey, string? url)
@@ -401,49 +464,31 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
 
 
     private static bool NeedsFullStream(Track track)
-
     {
-
         if (track.Source == MusicSource.Local
-
             && !string.IsNullOrWhiteSpace(track.StreamUrl)
-
             && File.Exists(track.StreamUrl))
-
             return false;
 
-
+        // SoundCloud CDN links expire — always fetch a fresh URL.
+        if (track.Source == MusicSource.SoundCloud)
+            return true;
 
         if (!string.IsNullOrWhiteSpace(track.StreamUrl)
-
             && track.StreamUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-
             && !track.StreamUrl.Contains("preview", StringComparison.OrdinalIgnoreCase))
-
             return false;
 
-
-
         if (string.IsNullOrWhiteSpace(track.StreamUrl))
-
             return true;
-
-
 
         if (track.Source is MusicSource.Deezer or MusicSource.Spotify)
-
             return true;
-
-
 
         if (track.StreamUrl.Contains("preview", StringComparison.OrdinalIgnoreCase))
-
             return true;
 
-
-
         return false;
-
     }
 
 }

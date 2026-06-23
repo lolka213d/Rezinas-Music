@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Harmony.Helpers;
 using Harmony.Models;
 using Harmony.Services;
 using Harmony.Services.Interfaces;
@@ -43,6 +45,7 @@ public partial class FavoritesViewModel : ObservableObject
     public string ColumnTitleLabel => _loc.T("common.title");
     public string ColumnTimeLabel => _loc.T("common.time");
     public string PlayAllLabel => _loc.T("collections.playAll");
+    public string ClearAllLabel => _loc.T("favorites.clearAll");
 
     public ObservableCollection<Track> Tracks { get; } = new();
 
@@ -63,6 +66,7 @@ public partial class FavoritesViewModel : ObservableObject
         OnPropertyChanged(nameof(AddMoreDescLabel));
         OnPropertyChanged(nameof(ColumnTitleLabel));
         OnPropertyChanged(nameof(ColumnTimeLabel));
+        OnPropertyChanged(nameof(ClearAllLabel));
     }
 
     public async Task LoadAsync()
@@ -102,6 +106,21 @@ public partial class FavoritesViewModel : ObservableObject
         if (Tracks.Count == 0) return Task.CompletedTask;
         var shuffled = Tracks.OrderBy(_ => Random.Shared.Next()).ToList();
         return _player.PlayQueueAsync(shuffled, shuffled[0]);
+    }
+
+    [RelayCommand]
+    private async Task ClearAll()
+    {
+        if (Tracks.Count == 0) return;
+        var confirm = MessageBox.Show(
+            _loc.T("favorites.clearAllConfirm"),
+            AppBranding.Name,
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (confirm != MessageBoxResult.Yes) return;
+
+        await _favorites.ClearAllAsync();
+        await LoadAsync();
     }
 
     [RelayCommand]
