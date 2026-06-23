@@ -300,9 +300,6 @@ public partial class PlayerViewModel : ObservableObject
         try
         {
             _log.Info($"Play requested: {source.ArtistName} — {source.Title}");
-            _streams.InvalidateCachedStream(source);
-            if (source.Source is not MusicSource.Local and not MusicSource.SoundCloud)
-                source.StreamUrl = null;
 
             var streamUrl = await _streams.ResolveFullStreamAsync(source);
             if (session != Volatile.Read(ref _playSession)) return;
@@ -340,18 +337,11 @@ public partial class PlayerViewModel : ObservableObject
 
             if (_player.Duration.TotalSeconds > 1)
             {
-                var actual = _player.Duration.TotalSeconds;
-                var expected = source.DurationSeconds;
-                if (expected <= 0 || Math.Abs(actual - expected) <= Math.Max(8, expected * 0.06))
-                {
-                    DurationSeconds = actual;
-                    source.DurationSeconds = (int)Math.Round(actual);
-                    track.DurationSeconds = source.DurationSeconds;
-                    CurrentTrack = CloneTrack(track);
-                    OnPropertyChanged(nameof(HasTrack));
-                }
-                else
-                    _log.Warning($"Stream duration mismatch for '{source.Title}': expected {expected}s, got {actual:F0}s");
+                DurationSeconds = _player.Duration.TotalSeconds;
+                source.DurationSeconds = (int)Math.Round(_player.Duration.TotalSeconds);
+                track.DurationSeconds = source.DurationSeconds;
+                CurrentTrack = CloneTrack(track);
+                OnPropertyChanged(nameof(HasTrack));
             }
 
             if (restoreSeek > 0.5)

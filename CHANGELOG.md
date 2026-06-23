@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.9
+
+- Playback: restored reliable YouTube resolver from 1.2.3 era (first good match + normal duration tolerance)
+- Removed per-play cache wipe that forced re-search and caused wrong or missing streams
+
 ## 1.2.8
 
 - Playback: no more 30-second Deezer preview fallback — two-pass YouTube search (strict then relaxed) with latin artist queries for full-length audio
