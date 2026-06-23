@@ -30,6 +30,7 @@
             <conv:FilterChipSelectedConverter x:Key="FilterChipSelected" />
             <conv:IsSameTrackConverter x:Key="IsSameTrack" />
             <conv:AudioQualityLabelConverter x:Key="AudioQualityLabel" />
+            <conv:PlaybackSourceLabelConverter x:Key="PlaybackSourceLabel" />
             <conv:TrackIsFavoriteConverter x:Key="TrackIsFavorite" />
             <conv:TrackCountLabelConverter x:Key="TrackCountLabel" />
             <conv:HexToBrushConverter x:Key="HexToBrush" />

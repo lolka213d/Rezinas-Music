@@ -156,6 +156,25 @@
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
+                            <TextBlock Text="{Binding Loc.SettingsPlaybackSource}" Style="{StaticResource Muted}" Margin="0,0,0,8" />
+                            <ComboBox ItemsSource="{Binding PlaybackSourceOptions}" SelectedItem="{Binding PlaybackSourceMode}"
+                                      Width="320" HorizontalAlignment="Left" Margin="0,0,0,8"
+                                      MaxDropDownHeight="200">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type models:PlaybackSourceMode}">
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource PlaybackSourceLabel}">
+                                                    <Binding />
+                                                    <Binding Path="DataContext.Language" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Text="{Binding Loc.SettingsPlaybackSourceHint}" Style="{StaticResource Muted}" TextWrapping="Wrap"
+                                       Margin="0,0,0,20" MaxWidth="520" HorizontalAlignment="Left" />
                             <TextBlock Text="{Binding Loc.SettingsPlaybackSpeed}" Style="{StaticResource Muted}" Margin="0,0,0,8" />
                             <ComboBox ItemsSource="{Binding SpeedOptions}" SelectedItem="{Binding PlaybackSpeed}"
                                       Width="140" HorizontalAlignment="Left" Margin="0,0,0,20" />

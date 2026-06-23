@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.11
+
+- Fix game mode (lite GPU): missing `RzPlayerPlayButtonLite` style crash
+- Playback: four-pass YouTube search (strict → relaxed → fallback → desperate) so more tracks load
+- Duration: prefer closest match — rejects short edits (e.g. 2:12 when track is 2:38) when full version is found
+- Playback source setting: SoundCloud first, or Spotify catalog → SoundCloud → YouTube fallback
+
 ## 1.2.10
 
 - Playback: pick best YouTube match (artist + title + closest duration), not first random result; rejects 3:26 when track is 2:38

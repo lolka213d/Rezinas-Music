@@ -330,6 +330,20 @@ internal static class LocalizationTable
     ["settings.language"] = S("Language", "Язык", "Мова", "Idioma", "Sprache", "Langue", "Lingua", "Idioma", "Język", "言語"),
     ["settings.playback"] = S("Playback", "Воспроизведение", "Відтворення", "Reproducción", "Wiedergabe", "Lecture", "Riproduzione", "Reprodução", "Odtwarzanie", "再生"),
     ["settings.quality"] = S("Audio quality (when supported)", "Качество звука (если поддерживается)", "Якість звуку (якщо підтримується)", "Calidad de audio (si está disponible)", "Audioqualität (wenn unterstützt)", "Qualité audio (si prise en charge)", "Qualità audio (se supportata)", "Qualidade de áudio (se suportada)", "Jakość dźwięku (jeśli obsługiwana)", "音質（対応時）"),
+    ["settings.playbackSource"] = S("Playback source", "Источник воспроизведения", "Джерело відтворення", "Fuente de reproducción", "Wiedergabequelle", "Source de lecture", "Sorgente riproduzione", "Fonte de reprodução", "Źródło odtwarzania", "再生ソース"),
+    ["settings.playbackSourceHint"] = S("SoundCloud needs Client ID in Data tab. Spotify mode finds the track in Spotify catalog, then plays from SoundCloud or YouTube. Spotify does not provide full streams to third-party apps.",
+      "SoundCloud — укажите Client ID во вкладке «Данные». Режим Spotify ищет трек в каталоге Spotify, затем играет с SoundCloud или YouTube. Spotify не отдаёт полные треки сторонним приложениям.",
+      "SoundCloud — Client ID у вкладці «Дані». Spotify шукає трек у каталозі, потім грає з SoundCloud або YouTube.",
+      "SoundCloud requiere Client ID. Spotify busca en el catálogo y reproduce desde SoundCloud o YouTube.",
+      "SoundCloud braucht Client ID. Spotify-Modus: Katalogsuche, dann SoundCloud oder YouTube.",
+      "SoundCloud nécessite un Client ID. Mode Spotify : catalogue puis SoundCloud ou YouTube.",
+      "SoundCloud richiede Client ID. Modalità Spotify: catalogo poi SoundCloud o YouTube.",
+      "SoundCloud precisa de Client ID. Modo Spotify: catálogo depois SoundCloud ou YouTube.",
+      "SoundCloud wymaga Client ID. Tryb Spotify: katalog, potem SoundCloud lub YouTube.",
+      "SoundCloudはClient IDが必要。Spotifyモードはカタログ検索後SoundCloud/YouTube。"),
+    ["playbackSource.youtubeFirst"] = S("YouTube (default)", "YouTube (по умолчанию)", "YouTube (за замовч.)", "YouTube (predeterminado)", "YouTube (Standard)", "YouTube (par défaut)", "YouTube (predefinito)", "YouTube (padrão)", "YouTube (domyślnie)", "YouTube（既定）"),
+    ["playbackSource.soundCloudFirst"] = S("SoundCloud first", "Сначала SoundCloud", "Спочатку SoundCloud", "SoundCloud primero", "Zuerst SoundCloud", "SoundCloud d'abord", "Prima SoundCloud", "SoundCloud primeiro", "Najpierw SoundCloud", "SoundCloud優先"),
+    ["playbackSource.spotifySoundCloud"] = S("Spotify catalog → SoundCloud", "Spotify каталог → SoundCloud", "Каталог Spotify → SoundCloud", "Catálogo Spotify → SoundCloud", "Spotify-Katalog → SoundCloud", "Catalogue Spotify → SoundCloud", "Catalogo Spotify → SoundCloud", "Catálogo Spotify → SoundCloud", "Katalog Spotify → SoundCloud", "Spotifyカタログ→SoundCloud"),
     ["settings.radio"] = S("Radio — continue with similar tracks when queue ends", "Радио — похожие треки после очереди", "Радіо — схожі треки після черги", "Radio — pistas similares al terminar la cola", "Radio — ähnliche Titel nach der Warteschlange", "Radio — titres similaires en fin de file", "Radio — brani simili a fine coda", "Rádio — faixas similares ao fim da fila", "Radio — podobne utwory po kolejce", "ラジオ — キュー終了後に類似曲"),
     ["settings.lyricsOffset"] = S("Lyrics sync offset (seconds, + = later)", "Смещение текста (сек, + = позже)", "Зсув тексту (сек, + = пізніше)", "Desfase de letras (seg, + = más tarde)", "Text-Offset (Sek, + = später)", "Décalage paroles (s, + = plus tard)", "Offset testi (sec, + = dopo)", "Deslocamento letras (s, + = depois)", "Przesunięcie tekstu (s, + = później)", "歌詞オフセット（秒、+は遅れ）"),
     ["settings.crossfade"] = S("Crossfade (ms, experimental)", "Кроссфейд (мс, эксперимент)", "Кросфейд (мс, експеримент)", "Crossfade (ms, experimental)", "Crossfade (ms, experimentell)", "Fondu enchaîné (ms, expérimental)", "Crossfade (ms, sperimentale)", "Crossfade (ms, experimental)", "Crossfade (ms, eksperymentalny)", "クロスフェード（ms、実験的）"),
@@ -560,6 +574,15 @@ internal static class LocalizationTable
       "normal" => Get(language, "quality.normal"),
       "high" => Get(language, "quality.high"),
       _ => qualityName
+    };
+
+  public static string PlaybackSourceLabel(string language, string modeName) =>
+    modeName switch
+    {
+      "YouTubeFirst" => Get(language, "playbackSource.youtubeFirst"),
+      "SoundCloudFirst" => Get(language, "playbackSource.soundCloudFirst"),
+      "SpotifySoundCloud" => Get(language, "playbackSource.spotifySoundCloud"),
+      _ => modeName
     };
 
   public static string SearchTabLabel(string language, SearchTab tab) =>

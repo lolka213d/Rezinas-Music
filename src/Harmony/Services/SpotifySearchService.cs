@@ -115,6 +115,77 @@ public sealed class SpotifySearchService : IMusicSearchService
         return tracks;
     }
 
+    /// <summary>Find the closest Spotify catalog match for playback routing (metadata only — no full stream).</summary>
+    public async Task<Track?> FindBestTrackAsync(
+        string artist, string title, int durationSeconds, CancellationToken cancellationToken = default)
+    {
+        if (!IsAvailable) return null;
+
+        var query = !string.IsNullOrWhiteSpace(artist) && !string.IsNullOrWhiteSpace(title)
+            ? $"artist:{artist.Trim()} track:{title.Trim()}"
+            : $"{artist} {title}".Trim();
+        if (query.Length == 0) return null;
+
+        var results = await SearchAsync(query, cancellationToken);
+        if (results.Count == 0 && query.Contains("artist:", StringComparison.OrdinalIgnoreCase))
+            results = await SearchAsync($"{artist} {title}".Trim(), cancellationToken);
+        if (results.Count == 0) return null;
+
+        Track? best = null;
+        var bestScore = -1;
+        foreach (var candidate in results)
+        {
+            var score = ScoreCatalogMatch(candidate, artist, title, durationSeconds);
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = candidate;
+            }
+        }
+
+        return bestScore > 0 ? best : null;
+    }
+
+    private static int ScoreCatalogMatch(Track candidate, string artist, string title, int durationSeconds)
+    {
+        var haystack = $"{Normalize(candidate.Title)} {Normalize(candidate.ArtistName)}";
+        var normTitle = Normalize(title);
+        var normArtist = Normalize(artist);
+        if (haystack.Length == 0 || normTitle.Length == 0) return 0;
+
+        var hasArtist = normArtist.Length == 0
+            || haystack.Contains(normArtist, StringComparison.OrdinalIgnoreCase);
+        var fullTitle = haystack.Contains(normTitle, StringComparison.OrdinalIgnoreCase);
+        if (!hasArtist && !fullTitle) return 0;
+
+        var tokens = normTitle.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Where(t => t.Length >= 2).ToList();
+        var titleHits = tokens.Count(t => haystack.Contains(t, StringComparison.OrdinalIgnoreCase));
+        var titleRatio = tokens.Count == 0 ? (fullTitle ? 1.0 : 0.0) : (double)titleHits / tokens.Count;
+        if (titleRatio < 0.5) return 0;
+
+        var score = (int)Math.Round(titleRatio * 40);
+        if (fullTitle) score += 25;
+        if (hasArtist) score += 20;
+
+        if (durationSeconds > 0 && candidate.DurationSeconds > 0)
+        {
+            var delta = Math.Abs(candidate.DurationSeconds - durationSeconds);
+            var tolerance = Math.Clamp((int)Math.Round(durationSeconds * 0.12), 12, 30);
+            if (delta > tolerance) score -= 20;
+            else score += Math.Max(0, 30 - delta);
+        }
+
+        return score;
+    }
+
+    private static string Normalize(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        var chars = value.Where(c => char.IsLetterOrDigit(c) || char.IsWhiteSpace(c)).ToArray();
+        return new string(chars).ToLowerInvariant().Trim();
+    }
+
     private async Task<string?> GetTokenAsync(CancellationToken cancellationToken)
     {
         if (_token != null && DateTime.UtcNow < _tokenExpiresUtc)

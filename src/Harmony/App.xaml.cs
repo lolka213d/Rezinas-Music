@@ -149,6 +149,7 @@ public partial class App : Application
         services.AddSingleton<ILocalImportService, LocalImportService>();
         services.AddSingleton<IAudioPlayerService, NAudioPlayerService>();
         services.AddSingleton<ILyricsService, LyricsService>();
+        services.AddSingleton<SoundCloudStreamResolver>();
         services.AddSingleton<IStreamResolverService, YouTubeStreamResolver>();
         services.AddSingleton<ApiTestService>();
         services.AddSingleton<NavigationService>();
@@ -175,7 +176,8 @@ public partial class App : Application
         services.AddSingleton<SampleMusicProvider>();
         services.AddSingleton<IMusicSearchService, DeezerSearchService>();
         services.AddSingleton<IMusicSearchService, YouTubeSearchService>();
-        services.AddSingleton<IMusicSearchService, SpotifySearchService>();
+        services.AddSingleton<SpotifySearchService>();
+        services.AddSingleton<IMusicSearchService, SpotifySearchService>(sp => sp.GetRequiredService<SpotifySearchService>());
         services.AddSingleton<IMusicSearchService, SoundCloudSearchService>();
 
         // ----- View models -----

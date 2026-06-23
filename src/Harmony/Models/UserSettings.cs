@@ -18,6 +18,19 @@ public enum AudioQuality
 
 
 
+/// <summary>Where to look for playable audio when a track has no direct stream URL.</summary>
+public enum PlaybackSourceMode
+{
+    /// <summary>YouTube search (default).</summary>
+    YouTubeFirst = 0,
+    /// <summary>SoundCloud search first, then YouTube.</summary>
+    SoundCloudFirst = 1,
+    /// <summary>Spotify catalog lookup, then SoundCloud, then YouTube.</summary>
+    SpotifySoundCloud = 2
+}
+
+
+
 /// <summary>Application theme.</summary>
 
 public enum AppTheme
@@ -69,6 +82,9 @@ public class UserSettings
     // ----- Playback -----
 
     public AudioQuality AudioQuality { get; set; } = AudioQuality.Normal;
+
+    /// <summary>Preferred source for resolving online playback streams.</summary>
+    public PlaybackSourceMode PlaybackSourceMode { get; set; } = PlaybackSourceMode.YouTubeFirst;
 
     public double Volume { get; set; } = 0.7;
 

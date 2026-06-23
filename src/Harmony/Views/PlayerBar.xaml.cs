@@ -45,7 +45,15 @@ public partial class PlayerBar : UserControl
 
     public void ApplyLiteChrome(bool lite)
     {
-        ChromeBorder.Style = (Style)FindResource(lite ? "GlassPlayerBarLite" : "GlassPlayerBar");
-        PlayButton.Style = (Style)FindResource(lite ? "RzPlayerPlayButtonLite" : "RzPlayerPlayButton");
+        ChromeBorder.Style = ResolveStyle(lite ? "GlassPlayerBarLite" : "GlassPlayerBar");
+        PlayButton.Style = ResolveStyle(lite ? "RzPlayerPlayButtonLite" : "RzPlayerPlayButton");
+    }
+
+    private static Style ResolveStyle(string key)
+    {
+        if (Application.Current.TryFindResource(key) is Style style)
+            return style;
+
+        throw new InvalidOperationException($"'{key}' resource not found.");
     }
 }

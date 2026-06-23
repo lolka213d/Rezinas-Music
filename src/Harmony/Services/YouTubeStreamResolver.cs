@@ -27,19 +27,28 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
     private readonly HttpClient _http;
     private readonly IAppLog _log;
     private readonly ISettingsService _settings;
+    private readonly SoundCloudStreamResolver _soundCloud;
+    private readonly SpotifySearchService _spotify;
     private readonly ConcurrentDictionary<string, string> _urlCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, string> _videoIdCache = new(StringComparer.OrdinalIgnoreCase);
-    private const int MaxSearchCandidates = 10;
+    private const int MaxSearchCandidates = 20;
 
     private sealed record DeezerTrackMeta(string Title, string Artist, int DurationSeconds, string? Preview);
 
     private sealed record ScoredVideo(string VideoId, string Title, int Score);
 
-    public YouTubeStreamResolver(IAppLog log, HttpClient http, ISettingsService settings)
+    public YouTubeStreamResolver(
+        IAppLog log,
+        HttpClient http,
+        ISettingsService settings,
+        SoundCloudStreamResolver soundCloud,
+        SpotifySearchService spotify)
     {
         _log = log;
         _http = http;
         _settings = settings;
+        _soundCloud = soundCloud;
+        _spotify = spotify;
     }
 
     public async Task<string?> ResolveFullStreamAsync(Track track, CancellationToken cancellationToken = default)
@@ -94,6 +103,14 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             _videoIdCache.TryRemove(cacheKey, out _);
         }
 
+        var (alternateUrl, enrichedArtist, enrichedTitle) = await TryConfiguredPlaybackSourcesAsync(
+            searchArtist, searchTitle, track, cacheKey, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(alternateUrl))
+            return alternateUrl;
+
+        searchArtist = enrichedArtist;
+        searchTitle = enrichedTitle;
+
         var probe = CloneForSearch(track, searchArtist, searchTitle);
         var titlePhrase = PrimaryTitle(searchTitle);
         var baseQuery = $"{searchArtist} {titlePhrase}".Trim();
@@ -126,6 +143,56 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             _log.Warning($"Falling back to preview URL for '{track.Title}'");
 
         return track.StreamUrl;
+    }
+
+    private async Task<(string? StreamUrl, string Artist, string Title)> TryConfiguredPlaybackSourcesAsync(
+        string artist, string title, Track track, string cacheKey, CancellationToken cancellationToken)
+    {
+        var mode = _settings.Current.PlaybackSourceMode;
+        var probeArtist = artist;
+        var probeTitle = title;
+
+        if (mode == PlaybackSourceMode.YouTubeFirst)
+            return (null, probeArtist, probeTitle);
+
+        if (mode == PlaybackSourceMode.SpotifySoundCloud && _spotify.IsAvailable)
+        {
+            var match = await _spotify.FindBestTrackAsync(artist, title, track.DurationSeconds, cancellationToken);
+            if (match != null)
+            {
+                probeArtist = match.ArtistName;
+                probeTitle = match.Title;
+                if (match.DurationSeconds > 0)
+                    track.DurationSeconds = match.DurationSeconds;
+                _log.Info($"Spotify catalog match: {probeArtist} — {probeTitle}");
+            }
+        }
+        else if (mode == PlaybackSourceMode.SpotifySoundCloud)
+        {
+            _log.Info("Spotify keys not set — skipping catalog lookup.");
+        }
+
+        if (mode is PlaybackSourceMode.SoundCloudFirst or PlaybackSourceMode.SpotifySoundCloud)
+        {
+            if (_soundCloud.IsAvailable)
+            {
+                var scUrl = await _soundCloud.TryResolveStreamAsync(
+                    probeArtist, probeTitle, track.DurationSeconds, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(scUrl))
+                {
+                    _log.Info($"SoundCloud stream ready: {track.Title}");
+                    return (RememberStream(cacheKey, scUrl), probeArtist, probeTitle);
+                }
+
+                _log.Info($"SoundCloud: no match for {probeArtist} — {probeTitle}");
+            }
+            else
+            {
+                _log.Info("SoundCloud Client ID not set — add it in Settings → Data.");
+            }
+        }
+
+        return (null, probeArtist, probeTitle);
     }
 
     public void InvalidateCachedStream(Track track)
@@ -185,7 +252,8 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         var candidates = 0;
         ScoredVideo? bestStrict = null;
         ScoredVideo? bestRelaxed = null;
-        var minVideoDuration = MinVideoDurationSeconds(track);
+        ScoredVideo? bestFallback = null;
+        ScoredVideo? bestDesperate = null;
 
         await foreach (var video in _youtube.Search.GetVideosAsync(query, cancellationToken))
         {
@@ -195,7 +263,7 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             var videoTitle = video.Title ?? string.Empty;
             var channelTitle = video.Author?.ChannelTitle ?? string.Empty;
             var videoDuration = video.Duration?.TotalSeconds ?? 0;
-            if (videoDuration < minVideoDuration) continue;
+            if (videoDuration < 30) continue;
 
             var strictScore = ScoreCandidate(videoTitle, channelTitle, videoDuration, track);
             if (strictScore > 0 && (bestStrict == null || strictScore > bestStrict.Score))
@@ -204,14 +272,24 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             var relaxedScore = ScoreCandidateRelaxed(videoTitle, channelTitle, videoDuration, track);
             if (relaxedScore > 0 && (bestRelaxed == null || relaxedScore > bestRelaxed.Score))
                 bestRelaxed = new ScoredVideo(video.Id.Value, videoTitle, relaxedScore);
+
+            var fallbackScore = ScoreCandidateFallback(videoTitle, channelTitle, videoDuration, track);
+            if (fallbackScore > 0 && (bestFallback == null || fallbackScore > bestFallback.Score))
+                bestFallback = new ScoredVideo(video.Id.Value, videoTitle, fallbackScore);
+
+            var desperateScore = ScoreCandidateDesperate(videoTitle, channelTitle, videoDuration, track);
+            if (desperateScore > 0 && (bestDesperate == null || desperateScore > bestDesperate.Score))
+                bestDesperate = new ScoredVideo(video.Id.Value, videoTitle, desperateScore);
         }
 
-        var best = bestStrict ?? bestRelaxed;
+        var best = bestStrict ?? bestRelaxed ?? bestFallback ?? bestDesperate;
         if (best == null) return null;
 
-        _log.Info(bestStrict != null
-            ? $"Best YouTube match (strict, score {best.Score}): {best.Title} ({best.VideoId})"
-            : $"Best YouTube match (relaxed, score {best.Score}): {best.Title} ({best.VideoId})");
+        var mode = bestStrict != null ? "strict"
+            : bestRelaxed != null ? "relaxed"
+            : bestFallback != null ? "fallback"
+            : "desperate";
+        _log.Info($"Best YouTube match ({mode}, score {best.Score}): {best.Title} ({best.VideoId})");
 
         var streamUrl = await TryYoutubeExplodeStreamUrlAsync(new YoutubeExplode.Videos.VideoId(best.VideoId), cancellationToken);
         if (string.IsNullOrWhiteSpace(streamUrl))
@@ -234,7 +312,7 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         var title = NormalizeForMatch(PrimaryTitle(track.Title));
         if (title.Length == 0) return 0;
 
-        var titleTokens = TitleTokens(title, minLength: 3);
+        var titleTokens = TitleTokens(title, minLength: 2);
         var titleHits = titleTokens.Count == 0
             ? (haystack.Contains(title, StringComparison.OrdinalIgnoreCase) ? 1 : 0)
             : titleTokens.Count(t => haystack.Contains(t, StringComparison.OrdinalIgnoreCase));
@@ -254,12 +332,7 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         if (NormalizeForMatch(videoTitle).Contains("official", StringComparison.OrdinalIgnoreCase)) score += 8;
         if (NormalizeForMatch(videoTitle).Contains("audio", StringComparison.OrdinalIgnoreCase)) score += 4;
 
-        if (track.DurationSeconds > 0 && videoDuration > 0)
-        {
-            var delta = Math.Abs(videoDuration - track.DurationSeconds);
-            var tolerance = DurationToleranceSeconds(track.DurationSeconds);
-            score += delta == 0 ? 25 : (int)Math.Round((1.0 - delta / tolerance) * 20);
-        }
+        score += DurationScore(videoDuration, track.DurationSeconds, DurationToleranceSeconds(track.DurationSeconds));
 
         return score;
     }
@@ -267,20 +340,28 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
     private static int DurationToleranceSeconds(int durationSeconds)
     {
         if (durationSeconds <= 0) return 30;
-        return Math.Clamp((int)Math.Round(durationSeconds * 0.12), 15, 35);
+        return Math.Clamp((int)Math.Round(durationSeconds * 0.10), 12, 22);
     }
 
     private static int RelaxedDurationToleranceSeconds(int durationSeconds)
     {
-        if (durationSeconds <= 0) return 45;
-        return Math.Clamp((int)Math.Round(durationSeconds * 0.30), 25, 55);
+        if (durationSeconds <= 0) return 50;
+        return Math.Clamp((int)Math.Round(durationSeconds * 0.22), 28, 50);
     }
 
-    private static double MinVideoDurationSeconds(Track track)
+    private static int FallbackDurationToleranceSeconds(int durationSeconds)
     {
-        if (track.DurationSeconds > 0)
-            return Math.Clamp(track.DurationSeconds * 0.35, 30, 45);
-        return 30;
+        if (durationSeconds <= 0) return 75;
+        return durationSeconds < 240 ? 75 : 55;
+    }
+
+    private static int DurationScore(double videoDuration, int trackDurationSeconds, int tolerance)
+    {
+        if (trackDurationSeconds <= 0 || videoDuration <= 0) return 0;
+
+        var delta = Math.Abs(videoDuration - trackDurationSeconds);
+        if (delta > tolerance) return 0;
+        return delta == 0 ? 50 : (int)Math.Round((1.0 - delta / tolerance) * 45);
     }
 
     private static List<string> TitleTokens(string title, int minLength)
@@ -319,13 +400,62 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         if (fullTitleMatch) score += 20;
         if (hasArtist) score += ArtistMatchStrength(haystack, track.ArtistName);
 
-        if (track.DurationSeconds > 0 && videoDuration > 0)
+        score += DurationScore(videoDuration, track.DurationSeconds, RelaxedDurationToleranceSeconds(track.DurationSeconds));
+
+        return score;
+    }
+
+    private static int ScoreCandidateFallback(string videoTitle, string channelTitle, double videoDuration, Track track)
+    {
+        var haystack = $"{NormalizeForMatch(videoTitle)} {NormalizeForMatch(channelTitle)}";
+        if (haystack.Length == 0) return 0;
+        if (!ArtistMatches(haystack, track.ArtistName)) return 0;
+
+        var title = NormalizeForMatch(PrimaryTitle(track.Title));
+        if (title.Length == 0) return 0;
+
+        var titleTokens = TitleTokens(title, minLength: 2);
+        var titleHits = titleTokens.Count(t => haystack.Contains(t, StringComparison.OrdinalIgnoreCase));
+        if (titleHits == 0 && !haystack.Contains(title, StringComparison.OrdinalIgnoreCase)) return 0;
+
+        var tolerance = FallbackDurationToleranceSeconds(track.DurationSeconds);
+        if (track.DurationSeconds > 0)
         {
             var delta = Math.Abs(videoDuration - track.DurationSeconds);
-            var tolerance = RelaxedDurationToleranceSeconds(track.DurationSeconds);
-            score += delta == 0 ? 15 : (int)Math.Round((1.0 - delta / tolerance) * 12);
+            if (delta > tolerance) return 0;
         }
 
+        var score = 20 + titleHits * 8 + ArtistMatchStrength(haystack, track.ArtistName);
+        score += DurationScore(videoDuration, track.DurationSeconds, tolerance);
+        return score;
+    }
+
+    private static int ScoreCandidateDesperate(string videoTitle, string channelTitle, double videoDuration, Track track)
+    {
+        var haystack = $"{NormalizeForMatch(videoTitle)} {NormalizeForMatch(channelTitle)}";
+        if (haystack.Length == 0) return 0;
+
+        var title = NormalizeForMatch(PrimaryTitle(track.Title));
+        if (title.Length == 0) return 0;
+
+        var fullTitleMatch = haystack.Contains(title, StringComparison.OrdinalIgnoreCase);
+        var titleTokens = TitleTokens(title, minLength: 2);
+        var titleHits = titleTokens.Count(t => haystack.Contains(t, StringComparison.OrdinalIgnoreCase));
+        var titleRatio = titleTokens.Count == 0 ? (fullTitleMatch ? 1.0 : 0.0) : (double)titleHits / titleTokens.Count;
+
+        if (!fullTitleMatch && titleRatio < 0.5) return 0;
+
+        var tolerance = FallbackDurationToleranceSeconds(track.DurationSeconds);
+        if (track.DurationSeconds > 0)
+        {
+            var delta = Math.Abs(videoDuration - track.DurationSeconds);
+            if (delta > tolerance) return 0;
+        }
+
+        var score = (int)Math.Round(titleRatio * 25);
+        if (fullTitleMatch) score += 25;
+        if (ArtistMatches(haystack, track.ArtistName)) score += ArtistMatchStrength(haystack, track.ArtistName);
+        score += DurationScore(videoDuration, track.DurationSeconds, tolerance);
         return score;
     }
 

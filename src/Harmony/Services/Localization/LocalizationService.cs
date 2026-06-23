@@ -165,6 +165,8 @@ public sealed class LocalizationService : ILocalizationService
     public string SettingsLanguage => T("settings.language");
     public string SettingsPlayback => T("settings.playback");
     public string SettingsQuality => T("settings.quality");
+    public string SettingsPlaybackSource => T("settings.playbackSource");
+    public string SettingsPlaybackSourceHint => T("settings.playbackSourceHint");
     public string SettingsRadio => T("settings.radio");
     public string SettingsLyricsOffset => T("settings.lyricsOffset");
     public string SettingsCrossfade => T("settings.crossfade");

@@ -128,6 +128,22 @@ public sealed class AudioQualityLabelConverter : IMultiValueConverter
         => throw new NotSupportedException();
 }
 
+/// <summary>Maps PlaybackSourceMode enum to localized label; pass Language as second binding value.</summary>
+public sealed class PlaybackSourceLabelConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (values.Length < 1 || values[0] is not PlaybackSourceMode mode)
+            return values.Length > 0 ? values[0] ?? "" : "";
+
+        var lang = values.Length > 1 ? values[1] as string : null;
+        return LocalizationTable.PlaybackSourceLabel(lang ?? "en", mode.ToString());
+    }
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 /// <summary>Russian track count label: 1 трек, 2 трека, 5 треков.</summary>
 public sealed class TrackCountLabelConverter : IValueConverter
 {

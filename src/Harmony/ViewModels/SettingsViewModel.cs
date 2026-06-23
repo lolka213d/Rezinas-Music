@@ -165,6 +165,8 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty] private AudioQuality _audioQuality = AudioQuality.Normal;
 
+    [ObservableProperty] private PlaybackSourceMode _playbackSourceMode = PlaybackSourceMode.YouTubeFirst;
+
     [ObservableProperty] private double _defaultVolume = 0.7;
 
     [ObservableProperty] private double _playbackSpeed = 1.0;
@@ -270,6 +272,8 @@ public partial class SettingsViewModel : ObservableObject
 
     public AudioQuality[] QualityOptions { get; } = Enum.GetValues<AudioQuality>();
 
+    public PlaybackSourceMode[] PlaybackSourceOptions { get; } = Enum.GetValues<PlaybackSourceMode>();
+
     public double[] SpeedOptions { get; } = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
     public int[] SleepTimerOptions { get; } = [0, 15, 30, 60];
@@ -373,6 +377,8 @@ public partial class SettingsViewModel : ObservableObject
 
         AudioQuality = s.AudioQuality;
 
+        PlaybackSourceMode = s.PlaybackSourceMode;
+
         DefaultVolume = s.Volume;
 
         PlaybackSpeed = s.PlaybackSpeed;
@@ -470,6 +476,8 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     partial void OnAudioQualityChanged(AudioQuality value) => ScheduleAutoSave();
+
+    partial void OnPlaybackSourceModeChanged(PlaybackSourceMode value) => ScheduleAutoSave();
 
     partial void OnPlaybackSpeedChanged(double value) => ScheduleAutoSave();
 
@@ -611,6 +619,8 @@ public partial class SettingsViewModel : ObservableObject
         s.Language = Language;
 
         s.AudioQuality = AudioQuality;
+
+        s.PlaybackSourceMode = PlaybackSourceMode;
 
         s.Volume = Math.Clamp(DefaultVolume, 0, 1);
 
