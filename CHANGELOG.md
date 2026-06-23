@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.12
+
+- Fix startup crash on upgrade from 1.2.10: missing `PlaybackSourceMode` column in SQLite database
+
 ## 1.2.11
 
 - Fix game mode (lite GPU): missing `RzPlayerPlayButtonLite` style crash

@@ -86,9 +86,11 @@ public static class DatabaseMigrator
                 SearchedAt TEXT NOT NULL
             );
             """);
+
+        DatabaseMigration_1_2_11.Apply(db);
     }
 
-    private static void TryAddColumn(AppDbContext db, string table, string column, string definition)
+    internal static void TryAddColumn(AppDbContext db, string table, string column, string definition)
     {
         if (!IsSafeIdentifier(table) || !IsSafeIdentifier(column) || string.IsNullOrWhiteSpace(definition))
             return;
