@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=3" />
+  <link rel="stylesheet" href="css/style.css?v=4" />
 </head>
 <body>
   <div class="bg-glow bg-glow--violet"></div>
@@ -22,6 +22,7 @@
         <span>Rezinas Music</span>
       </a>
       <nav class="nav">
+        <a href="#about">About</a>
         <a href="#download">Download</a>
         <a href="#support">Support</a>
         <a href="https://github.com/lolka213d/Rezinas-Music" target="_blank" rel="noopener">GitHub</a>
@@ -51,9 +52,78 @@
       </div>
       <figure class="hero__shot glass">
         <div class="shot-frame">
-          <img src="assets/01-main.png" alt="Rezinas Music — main screen" loading="eager" />
+          <img src="assets/home.png" alt="Rezinas Music — home screen" loading="eager" />
         </div>
       </figure>
+    </section>
+
+    <section id="about" class="about container">
+      <header class="about__head">
+        <p class="eyebrow">About the app</p>
+        <h2>Built for everyday listening</h2>
+        <p class="muted about__lead">Dark glass UI, smart recommendations, and your library — all in one window.</p>
+      </header>
+
+      <div class="about__shell glass">
+        <div class="about-tabs" role="tablist" aria-label="App screens">
+          <button type="button" class="about-tab is-active" role="tab" id="tab-home" aria-selected="true" aria-controls="panel-home" data-tab="home">Home</button>
+          <button type="button" class="about-tab" role="tab" id="tab-mywave" aria-selected="false" aria-controls="panel-mywave" data-tab="mywave" tabindex="-1">My Wave</button>
+          <button type="button" class="about-tab" role="tab" id="tab-playlists" aria-selected="false" aria-controls="panel-playlists" data-tab="playlists" tabindex="-1">Playlists</button>
+        </div>
+
+        <div class="about-panels">
+          <article id="panel-home" class="about-panel is-active" role="tabpanel" aria-labelledby="tab-home">
+            <figure class="about-panel__shot">
+              <div class="shot-frame">
+                <img src="assets/home.png" alt="Home — recommendations and daily mix" loading="lazy" />
+              </div>
+            </figure>
+            <div class="about-panel__copy">
+              <h3>Home</h3>
+              <p>Fresh picks, daily mix, and recent tracks on one screen. Jump back in or discover something new without digging through menus.</p>
+              <ul class="about-points">
+                <li>Daily mix with a new seed every day</li>
+                <li>Smart playlists and quick access to favorites</li>
+                <li>Listening stats at a glance</li>
+              </ul>
+            </div>
+          </article>
+
+          <article id="panel-mywave" class="about-panel" role="tabpanel" aria-labelledby="tab-mywave" hidden>
+            <figure class="about-panel__shot">
+              <div class="shot-frame">
+                <img src="assets/mywave.png" alt="My Wave — personal radio" loading="lazy" />
+              </div>
+            </figure>
+            <div class="about-panel__copy">
+              <h3>My Wave</h3>
+              <p>Personal radio that learns from what you play. Start the mix and let it run — skip, like, and the queue keeps flowing.</p>
+              <ul class="about-points">
+                <li>Endless stream tuned to your taste</li>
+                <li>One tap from home or the sidebar</li>
+                <li>Works alongside your own playlists</li>
+              </ul>
+            </div>
+          </article>
+
+          <article id="panel-playlists" class="about-panel" role="tabpanel" aria-labelledby="tab-playlists" hidden>
+            <figure class="about-panel__shot">
+              <div class="shot-frame">
+                <img src="assets/playlists.png" alt="Playlists — library and collections" loading="lazy" />
+              </div>
+            </figure>
+            <div class="about-panel__copy">
+              <h3>Playlists</h3>
+              <p>Create collections, sync from Spotify, import your library, and export backups — everything stays on your PC.</p>
+              <ul class="about-points">
+                <li>Local playlists with drag-and-drop order</li>
+                <li>Spotify sync and library import</li>
+                <li>Export / import for backup</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </div>
     </section>
 
     <section id="features" class="features container">
@@ -103,6 +173,6 @@
     </div>
   </footer>
 
-  <script src="js/app.js?v=3"></script>
+  <script src="js/app.js?v=4"></script>
 </body>
 </html>
