@@ -10,9 +10,7 @@
 [![Patreon](https://img.shields.io/badge/Patreon-Support-FF424D?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/rezinas)
 [![DonateAlerts](https://img.shields.io/badge/DonateAlerts-Support-F6A623?style=for-the-badge)](https://www.donationalerts.com/r/rezinas)
 
-![Rezinas Music — main screen](docs/screenshots/01-main.png)
-
-![Rezinas Music — player](docs/screenshots/02-player.png)
+![Rezinas Music — home screen](docs/screenshots/home.png)
 
 Desktop music player for Windows (.NET 8 / WPF): search, playlists, favorites, radio «My Wave», lyrics, and a bottom player bar.
 
