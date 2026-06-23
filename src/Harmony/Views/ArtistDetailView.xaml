@@ -5,8 +5,13 @@
              xmlns:views="clr-namespace:Harmony.Views">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="28,24,28,40">
-            <Button Style="{StaticResource OutlineButton}" Content="← Back"
-                    Command="{Binding GoBackCommand}" HorizontalAlignment="Left" Padding="14,6" Margin="0,0,0,20" />
+            <Button Style="{StaticResource OutlineButton}" HorizontalAlignment="Left" Padding="14,6" Margin="0,0,0,20"
+                    Command="{Binding GoBackCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="← " />
+                    <TextBlock Text="{Binding Loc.CommonBack}" />
+                </StackPanel>
+            </Button>
 
             <Grid Margin="0,0,0,24">
                 <Grid.ColumnDefinitions>
@@ -22,7 +27,7 @@
                     </Grid>
                 </Border>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <TextBlock Text="ARTIST" Style="{StaticResource Subtle}" FontWeight="Bold" FontSize="12" Margin="0,0,0,8" />
+                    <TextBlock Text="{Binding Loc.ArtistPageLabel}" Style="{StaticResource Subtle}" FontWeight="Bold" FontSize="12" Margin="0,0,0,8" />
                     <TextBlock Text="{Binding Name}" FontSize="42" FontWeight="Bold" TextWrapping="Wrap" />
                     <TextBlock Text="{Binding MetaLine}" Style="{StaticResource Subtle}" Margin="0,8,0,0" />
                 </StackPanel>
@@ -32,7 +37,7 @@
                 <Path Data="{StaticResource IconPlay}" Fill="Black" Stretch="Uniform" Width="22" Height="22" />
             </Button>
 
-            <TextBlock Text="Popular" Style="{StaticResource SectionTitle}" />
+            <TextBlock Text="{Binding Loc.ArtistPopular}" Style="{StaticResource SectionTitle}" />
             <ListBox ItemsSource="{Binding TopTracks}" Style="{StaticResource TrackListBox}" Margin="0,0,0,20">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -57,7 +62,7 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <TextBlock Text="Albums" Style="{StaticResource SectionTitle}" />
+            <TextBlock Text="{Binding Loc.CommonAlbums}" Style="{StaticResource SectionTitle}" />
             <views:HorizontalScrollRow ItemsSource="{Binding Albums}">
                 <views:HorizontalScrollRow.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:HomeAlbumCard}">

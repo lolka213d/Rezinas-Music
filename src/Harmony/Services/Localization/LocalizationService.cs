@@ -95,6 +95,11 @@ public sealed class LocalizationService : ILocalizationService
     public string CommonAllArtists => T("common.allArtists");
     public string CommonAppName => T("common.appName");
     public string CommonProfile => T("common.profile");
+    public string CommonLoading => T("common.loading");
+    public string CommonTitle => T("common.title");
+    public string CommonTime => T("common.time");
+    public string CommonCancel => T("common.cancel");
+    public string CommonClose => T("common.close");
 
     // Search
     public string SearchTitle => T("search.title");
@@ -110,6 +115,8 @@ public sealed class LocalizationService : ILocalizationService
     public string LibrarySubtitle => T("library.subtitle");
     public string LibraryEmpty => T("library.empty");
     public string LibraryImport => T("common.import");
+    public string LibrarySearchPlaceholder => T("library.searchPlaceholder");
+    public string LibraryEmptyImportHint => T("library.emptyImportHint");
 
     // Albums
     public string AlbumsTitle => T("albums.title");
@@ -118,6 +125,26 @@ public sealed class LocalizationService : ILocalizationService
     public string AlbumsNewPlaceholder => T("albums.newPlaceholder");
     public string AlbumsSongs => T("albums.songs");
     public string AlbumLyricsTitle => T("album.lyricsTitle");
+    public string AlbumTracksHeader => T("album.tracksHeader");
+    public string CollectionsShuffle => T("collections.shuffle");
+    public string HistoryTitle => T("history.title");
+    public string HistorySubtitle => T("history.subtitle");
+    public string HistoryClear => T("history.clear");
+    public string HistorySearchPlaceholder => T("history.searchPlaceholder");
+    public string HistoryEmptyTitle => T("history.emptyTitle");
+    public string HistoryEmptyDesc => T("history.emptyDesc");
+    public string ProfileInstalled => T("profile.installed");
+    public string ProfileMyPlaylists => T("profile.myPlaylists");
+    public string ProfileMyAlbums => T("profile.myAlbums");
+    public string ProfileNoPlaylists => T("profile.noPlaylists");
+    public string ProfileNoPlaylistsHint => T("profile.noPlaylistsHint");
+    public string ProfileNoAlbums => T("profile.noAlbums");
+    public string ProfileNoAlbumsHint => T("profile.noAlbumsHint");
+    public string PlayerSelectTrack => T("player.selectTrack");
+    public string ArtistPopular => T("artist.popular");
+    public string ArtistPageLabel => T("artist.pageLabel");
+    public string CommonAlbumsLabel => T("collections.albumColumn");
+    public string FavoritesShuffle => T("collections.shuffle");
 
     // Playlists
     public string PlaylistsTitle => T("playlists.title");

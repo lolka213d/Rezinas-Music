@@ -253,7 +253,7 @@
                                     <Button Grid.Column="3" Width="32" Height="32"
                                             HorizontalAlignment="Right" VerticalAlignment="Center" Visibility="Collapsed"
                                             Command="{Binding DataContext.AddToPlaylistCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}" ToolTip="Добавить в плейлист">
+                                            CommandParameter="{Binding}" ToolTip="{Binding DataContext.Loc.TipAddPlaylist, RelativeSource={RelativeSource AncestorType=UserControl}}">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
                                                 <Style.Triggers>

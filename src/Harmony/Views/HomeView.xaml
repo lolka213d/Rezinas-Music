@@ -619,10 +619,10 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <TextBlock Text="Loading…" Style="{StaticResource Subtle}"
+            <TextBlock Text="{Binding Loc.CommonLoading}" Style="{StaticResource Subtle}"
                        HorizontalAlignment="Center" Margin="0,20"
                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
-            <TextBlock Text="Loading more…" Style="{StaticResource Subtle}"
+            <TextBlock Text="{Binding LoadingMoreLabel}" Style="{StaticResource Subtle}"
                        HorizontalAlignment="Center" Margin="0,0,0,12"
                        Visibility="{Binding IsLoadingMore, Converter={StaticResource BoolToVisibility}}" />
         </StackPanel>

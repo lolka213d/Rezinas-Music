@@ -33,6 +33,7 @@ Screenshot*.png
 *.png
 !src/Harmony/Assets/app-icon.png
 !docs/screenshots/**
+!website/**
 
 # Spotify OAuth keys (copy from SpotifyAppCredentials.example.cs)
 src/Harmony/Config/SpotifyAppCredentials.cs

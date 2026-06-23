@@ -1,5 +1,15 @@
 # Rezinas Music
 
+[![Download latest release](https://img.shields.io/github/v/release/lolka213d/Rezinas-Music?label=Download&style=for-the-badge)](https://github.com/lolka213d/Rezinas-Music/releases/latest)
+
+**Support the project** — if you enjoy Rezinas Music, you can buy me a coffee:
+
+[![PayPal](https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.com/ncp/payment/PMVP42DTMTBSL)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/rezinas)
+[![Boosty](https://img.shields.io/badge/Boosty-Support-F15F2C?style=for-the-badge)](https://boosty.to/moonsfh)
+[![Patreon](https://img.shields.io/badge/Patreon-Support-FF424D?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/rezinas)
+[![DonateAlerts](https://img.shields.io/badge/DonateAlerts-Support-F6A623?style=for-the-badge)](https://www.donationalerts.com/r/rezinas)
+
 ![Rezinas Music — main screen](docs/screenshots/01-main.png)
 
 ![Rezinas Music — player](docs/screenshots/02-player.png)
@@ -7,6 +17,8 @@
 Desktop music player for Windows (.NET 8 / WPF): search, playlists, favorites, radio «My Wave», lyrics, and a bottom player bar.
 
 **Repository:** [github.com/lolka213d/Rezinas-Music](https://github.com/lolka213d/Rezinas-Music)
+
+**Branches:** `mine` (development, default) · `website` (GitHub Pages landing) · see [docs/BRANCHES.md](docs/BRANCHES.md)
 
 ## Requirements
 
@@ -36,7 +48,7 @@ Requires [Inno Setup 6](https://jrsoftware.org/isinfo.php) (script can install i
 .\installer\build-installer.ps1
 ```
 
-Output: `publish/RezinasMusic-Setup-1.0.0.exe`
+Output: `publish/RezinasMusic-Setup-<version>.exe` (see [Releases](https://github.com/lolka213d/Rezinas-Music/releases)).
 
 The installer lets you choose install folder and app language (default: English).
 

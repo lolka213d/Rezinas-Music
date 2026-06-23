@@ -23,9 +23,13 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Button Grid.Row="0" Style="{StaticResource OutlineButton}" Content="← Back"
-                    Command="{Binding GoBackCommand}" HorizontalAlignment="Left"
-                    Padding="14,6" Margin="0,0,0,16" Opacity="0" x:Name="BackButton" />
+            <Button Grid.Row="0" Style="{StaticResource OutlineButton}" HorizontalAlignment="Left"
+                    Command="{Binding GoBackCommand}" Padding="14,6" Margin="0,0,0,16" Opacity="0" x:Name="BackButton">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="← " />
+                    <TextBlock Text="{Binding Loc.CommonBack}" />
+                </StackPanel>
+            </Button>
 
             <Grid Grid.Row="1" x:Name="MainContent" Opacity="0">
                 <Grid.ColumnDefinitions>
@@ -43,7 +47,7 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <TextBlock Text="{Binding LyricsTitle}" FontWeight="Bold" FontSize="16" Margin="0,0,0,12" />
-                        <TextBlock Grid.Row="1" Text="Загрузка…" Style="{StaticResource Muted}"
+                        <TextBlock Grid.Row="1" Text="{Binding Loc.CommonLoading}" Style="{StaticResource Muted}"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"
                                    Visibility="{Binding IsLyricsLoading, Converter={StaticResource BoolToVisibility}}" />
                         <TextBlock Grid.Row="1" Text="{Binding LyricsStatus}" Style="{StaticResource Muted}"
@@ -202,16 +206,16 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <Button Style="{StaticResource PlayButton}" Width="48" Height="48"
                                     Command="{Binding PlayTrackCommand}" CommandParameter="{Binding FocusedTrack}"
-                                    IsEnabled="{Binding HasTracks}" ToolTip="Play">
+                                    IsEnabled="{Binding HasTracks}" ToolTip="{Binding Loc.TipPlay}">
                                 <Path Data="{StaticResource IconPlay}" Fill="Black" Stretch="Uniform" Width="22" Height="22" />
                             </Button>
                             <Button Style="{StaticResource IconButton}" Width="48" Height="48" Margin="14,0,0,0"
-                                    Command="{Binding ShuffleCommand}" IsEnabled="{Binding HasTracks}" ToolTip="Shuffle">
+                                    Command="{Binding ShuffleCommand}" IsEnabled="{Binding HasTracks}" ToolTip="{Binding Loc.CollectionsShuffle}">
                                 <Path Data="{StaticResource IconShuffle}" Style="{StaticResource IconPath}" />
                             </Button>
                             <Button Style="{StaticResource IconButton}" Width="48" Height="48" Margin="8,0,0,0"
                                     Command="{Binding ToggleFocusedFavoriteCommand}"
-                                    ToolTip="Like">
+                                    ToolTip="{Binding Loc.TipLike}">
                                 <Path Stretch="Uniform" Width="20" Height="20">
                                     <Path.Style>
                                         <Style TargetType="Path">
@@ -245,11 +249,11 @@
                         </Grid.RowDefinitions>
 
                         <StackPanel Grid.Row="0" Margin="14,14,14,8">
-                            <TextBlock Text="Tracks" FontSize="16" FontWeight="Bold" />
+                            <TextBlock Text="{Binding Loc.AlbumTracksHeader}" FontSize="16" FontWeight="Bold" />
                             <TextBlock Text="{Binding MetaLine}" Style="{StaticResource Muted}" FontSize="11" Margin="0,2,0,0" />
                         </StackPanel>
 
-                        <TextBlock Grid.Row="1" Text="Loading…" Style="{StaticResource Muted}"
+                        <TextBlock Grid.Row="1" Text="{Binding Loc.CommonLoading}" Style="{StaticResource Muted}"
                                    Margin="18,0" VerticalAlignment="Top"
                                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
 

@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Harmony.Models;
 using Harmony.Services;
 using Harmony.Services.Interfaces;
+using Harmony.Services.Localization;
 
 namespace Harmony.ViewModels;
 
@@ -12,13 +13,21 @@ public partial class ArtistDetailViewModel : ObservableObject
     private readonly DeezerHomeService _deezer;
     private readonly PlayerViewModel _player;
     private readonly NavigationService _navigation;
+    private readonly ILocalizationService _loc;
 
-    public ArtistDetailViewModel(DeezerHomeService deezer, PlayerViewModel player, NavigationService navigation)
+    public ArtistDetailViewModel(
+        DeezerHomeService deezer,
+        PlayerViewModel player,
+        NavigationService navigation,
+        ILocalizationService localization)
     {
         _deezer = deezer;
         _player = player;
         _navigation = navigation;
+        _loc = localization;
     }
+
+    public ILocalizationService Loc => _loc;
 
     public ObservableCollection<Track> TopTracks { get; } = new();
     public ObservableCollection<HomeAlbumCard> Albums { get; } = new();
@@ -54,14 +63,14 @@ public partial class ArtistDetailViewModel : ObservableObject
             {
                 Name = data.Name;
                 ThumbnailUrl ??= data.PictureUrl;
-                MetaLine = data.Fans > 0 ? $"{data.Fans:N0} поклонников" : Name;
+                MetaLine = data.Fans > 0 ? string.Format(_loc.T("artist.fansCount"), data.Fans) : Name;
                 foreach (var t in data.TopTracks) TopTracks.Add(t);
                 foreach (var a in data.Albums) Albums.Add(a);
             }
 
             HasContent = TopTracks.Count > 0 || Albums.Count > 0;
             if (!HasContent)
-                MetaLine = "Исполнитель не найден.";
+                MetaLine = _loc.T("artist.notFound");
         }
         finally
         {

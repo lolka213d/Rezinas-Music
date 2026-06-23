@@ -7,6 +7,7 @@ using Harmony.Helpers;
 using Harmony.Models;
 using Harmony.Services;
 using Harmony.Services.Interfaces;
+using Harmony.Services.Localization;
 
 namespace Harmony.Views;
 
@@ -20,14 +21,16 @@ public sealed class CreatePlaylistDialog : Window
     private readonly ObservableCollection<TrackPickItem> _results = new();
     private readonly IEnumerable<IMusicSearchService> _providers;
     private readonly ISettingsService _settings;
+    private readonly ILocalizationService _loc;
     private CancellationTokenSource? _searchCts;
 
-    private CreatePlaylistDialog(IEnumerable<IMusicSearchService> providers, ISettingsService settings)
+    private CreatePlaylistDialog(IEnumerable<IMusicSearchService> providers, ISettingsService settings, ILocalizationService localization)
     {
         _providers = providers;
         _settings = settings;
+        _loc = localization;
 
-        Title = "Новый плейлист";
+        Title = _loc.T("common.newPlaylist");
         Width = 480;
         Height = 520;
         MinWidth = 400;
@@ -50,7 +53,7 @@ public sealed class CreatePlaylistDialog : Window
 
         panel.Children.Add(new TextBlock
         {
-            Text = "Название плейлиста",
+            Text = _loc.T("createPlaylist.nameLabel"),
             FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(0, 0, 0, 8)
         });
@@ -65,14 +68,14 @@ public sealed class CreatePlaylistDialog : Window
 
         panel.Children.Add(new TextBlock
         {
-            Text = "Добавить треки (необязательно)",
+            Text = _loc.T("createPlaylist.addTracksLabel"),
             FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(0, 0, 0, 8)
         });
 
         _searchBox = new TextBox
         {
-            Tag = "Поиск треков…",
+            Tag = _loc.T("createPlaylist.searchPlaceholder"),
             Margin = new Thickness(0, 0, 0, 8)
         };
         _searchBox.TextChanged += (_, _) => _ = DebouncedSearchAsync();
@@ -80,7 +83,7 @@ public sealed class CreatePlaylistDialog : Window
 
         _hintText = new TextBlock
         {
-            Text = "Найдите треки или создайте пустой плейлист.",
+            Text = _loc.T("createPlaylist.initialHint"),
             Style = (Style)Application.Current.FindResource("Muted"),
             FontSize = 12,
             Margin = new Thickness(0, 0, 0, 8),
@@ -111,7 +114,7 @@ public sealed class CreatePlaylistDialog : Window
 
         var cancel = new Button
         {
-            Content = "Отмена",
+            Content = _loc.T("common.cancel"),
             Style = (Style)Application.Current.FindResource("OutlineButton"),
             Padding = new Thickness(16, 8, 16, 8),
             Margin = new Thickness(0, 0, 8, 0)
@@ -120,7 +123,7 @@ public sealed class CreatePlaylistDialog : Window
 
         var createEmpty = new Button
         {
-            Content = "Создать без треков",
+            Content = _loc.T("createPlaylist.createEmpty"),
             Style = (Style)Application.Current.FindResource("OutlineButton"),
             Padding = new Thickness(16, 8, 16, 8),
             Margin = new Thickness(0, 0, 8, 0)
@@ -129,7 +132,7 @@ public sealed class CreatePlaylistDialog : Window
 
         var create = new Button
         {
-            Content = "Создать",
+            Content = _loc.T("common.create"),
             Style = (Style)Application.Current.FindResource("PillButton"),
             Padding = new Thickness(20, 8, 20, 8)
         };
@@ -151,9 +154,10 @@ public sealed class CreatePlaylistDialog : Window
     public static async Task<CreatePlaylistDialog?> ShowAsync(
         IEnumerable<IMusicSearchService> providers,
         ISettingsService settings,
+        ILocalizationService localization,
         Window owner)
     {
-        var dialog = new CreatePlaylistDialog(providers, settings) { Owner = owner };
+        var dialog = new CreatePlaylistDialog(providers, settings, localization) { Owner = owner };
         await settings.LoadAsync();
         return dialog.ShowDialog() == true ? dialog : null;
     }
@@ -163,7 +167,7 @@ public sealed class CreatePlaylistDialog : Window
         var name = _nameBox.Text.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
-            MessageBox.Show(this, "Введите название плейлиста.", AppBranding.Name,
+            MessageBox.Show(this, _loc.T("createPlaylist.nameRequired"), AppBranding.Name,
                 MessageBoxButton.OK, MessageBoxImage.Information);
             _nameBox.Focus();
             return;
@@ -189,7 +193,7 @@ public sealed class CreatePlaylistDialog : Window
         {
             _results.Clear();
             _resultsList.Visibility = Visibility.Collapsed;
-            _hintText.Text = "Введите минимум 2 символа для поиска.";
+            _hintText.Text = _loc.T("createPlaylist.searchMinChars");
             return;
         }
 
@@ -203,11 +207,11 @@ public sealed class CreatePlaylistDialog : Window
 
     private async Task SearchAsync(string query, CancellationToken token)
     {
-        _hintText.Text = "Поиск…";
+        _hintText.Text = _loc.T("createPlaylist.searching");
         var available = _providers.Where(p => p.IsAvailable).ToList();
         if (available.Count == 0)
         {
-            _hintText.Text = "Нет доступных источников музыки.";
+            _hintText.Text = _loc.T("createPlaylist.noProviders");
             return;
         }
 
@@ -233,8 +237,8 @@ public sealed class CreatePlaylistDialog : Window
 
         _resultsList.Visibility = merged.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         _hintText.Text = merged.Count > 0
-            ? "Выберите треки или оставьте пустым."
-            : "Ничего не найдено — можно создать пустой плейлист.";
+            ? _loc.T("createPlaylist.hintSelect")
+            : _loc.T("createPlaylist.hintEmpty");
     }
 
     private static DataTemplate CreateTrackTemplate()

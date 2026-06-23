@@ -35,7 +35,7 @@
                         <StackPanel Margin="12,0,0,0" VerticalAlignment="Center" MaxWidth="200">
                             <TextBlock Text="{Binding CurrentTrack.Title, FallbackValue='Rezinas Music'}"
                                        FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Text="{Binding CurrentTrack.ArtistName, FallbackValue='Выберите трек'}"
+                            <TextBlock Text="{Binding CurrentArtistDisplay}"
                                        Style="{StaticResource RzMeta}" FontSize="12" TextTrimming="CharacterEllipsis" />
                         </StackPanel>
                     </StackPanel>
@@ -138,7 +138,7 @@
 
             <!-- Right: lyrics + volume -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button Style="{StaticResource IconButton}" Width="32" Height="32" ToolTip="Текст песни"
+                <Button Style="{StaticResource IconButton}" Width="32" Height="32" ToolTip="{Binding LyricsTooltip}"
                         Command="{Binding DataContext.Lyrics.ToggleCommand, RelativeSource={RelativeSource AncestorType=Window}}">
                     <Path Data="{StaticResource IconMic}" Fill="{StaticResource TextMutedBrush}" Stretch="Uniform" Width="15" Height="15" />
                 </Button>

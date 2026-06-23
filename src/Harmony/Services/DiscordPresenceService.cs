@@ -4,6 +4,7 @@ using System.Text.Json;
 using Harmony.Helpers;
 using Harmony.Models;
 using Harmony.Services.Interfaces;
+using Harmony.Services.Localization;
 
 namespace Harmony.Services;
 
@@ -12,14 +13,16 @@ public sealed class DiscordPresenceService : IDisposable
 {
     private readonly ISettingsService _settings;
     private readonly IAppLog _log;
+    private readonly ILocalizationService _loc;
     private DiscordIpcClient? _client;
     private string? _lastTrackKey;
     private long? _trackStartedUnix;
 
-    public DiscordPresenceService(ISettingsService settings, IAppLog log)
+    public DiscordPresenceService(ISettingsService settings, IAppLog log, ILocalizationService localization)
     {
         _settings = settings;
         _log = log;
+        _loc = localization;
     }
 
     public void Update(Track? track, bool isPlaying)
@@ -34,7 +37,7 @@ public sealed class DiscordPresenceService : IDisposable
         {
             _lastTrackKey = null;
             _trackStartedUnix = null;
-            SetActivity("Browsing", AppBranding.Name, null, null, null);
+            SetActivity(_loc.T("player.discordBrowsing"), AppBranding.Name, null, null, null);
             return;
         }
 
@@ -49,8 +52,8 @@ public sealed class DiscordPresenceService : IDisposable
         if (details.Length > 128) details = details[..128];
 
         var state = isPlaying
-            ? "Listening on " + AppBranding.Name
-            : "Paused";
+            ? string.Format(_loc.T("player.discordListening"), AppBranding.Name)
+            : _loc.T("player.discordPaused");
 
         var smallText = string.IsNullOrWhiteSpace(track.AlbumName) ? null : track.AlbumName;
         if (smallText is { Length: > 128 }) smallText = smallText[..128];

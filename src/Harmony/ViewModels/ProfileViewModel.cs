@@ -5,6 +5,7 @@ using Harmony.Helpers;
 using Harmony.Models;
 using Harmony.Services;
 using Harmony.Services.Interfaces;
+using Harmony.Services.Localization;
 
 namespace Harmony.ViewModels;
 
@@ -17,22 +18,16 @@ public sealed class ProfileAlbumCard
     public Album? UserAlbum { get; init; }
     public IReadOnlyList<Track>? LibraryTracks { get; init; }
 
-    public string Subtitle => TrackCount > 0 ? FormatTracks(TrackCount) : ArtistName;
+    public required string Subtitle { get; init; }
 
-    private static string FormatTracks(int count) => count switch
-    {
-        1 => "1 трек",
-        >= 2 and <= 4 => $"{count} трека",
-        _ => $"{count} треков"
-    };
-
-    public static ProfileAlbumCard FromUserAlbum(Album album) => new()
+    public static ProfileAlbumCard FromUserAlbum(Album album, string subtitle) => new()
     {
         Title = album.Name,
         ArtistName = album.ArtistName ?? "Various artists",
         ThumbnailUrl = album.ImageUrl,
         TrackCount = album.TrackCount,
-        UserAlbum = album
+        UserAlbum = album,
+        Subtitle = subtitle
     };
 }
 
@@ -43,21 +38,15 @@ public sealed class ProfilePlaylistCard
 
     public string Title => Playlist.Name;
     public int TrackCount => Playlist.TrackCount;
+    public required string Subtitle { get; init; }
 
     public string? Thumbnail0 => Thumbnails.Count > 0 ? Thumbnails[0] : null;
     public string? Thumbnail1 => Thumbnails.Count > 1 ? Thumbnails[1] : null;
     public string? Thumbnail2 => Thumbnails.Count > 2 ? Thumbnails[2] : null;
     public string? Thumbnail3 => Thumbnails.Count > 3 ? Thumbnails[3] : null;
 
-    public string Subtitle => TrackCount switch
-    {
-        1 => "1 трек",
-        >= 2 and <= 4 => $"{TrackCount} трека",
-        _ => $"{TrackCount} треков"
-    };
-
-    public static ProfilePlaylistCard From(Playlist playlist, IReadOnlyList<string?> thumbnails) =>
-        new() { Playlist = playlist, Thumbnails = thumbnails };
+    public static ProfilePlaylistCard From(Playlist playlist, IReadOnlyList<string?> thumbnails, string subtitle) =>
+        new() { Playlist = playlist, Thumbnails = thumbnails, Subtitle = subtitle };
 }
 
 /// <summary>User profile: install date and albums.</summary>
@@ -68,21 +57,33 @@ public partial class ProfileViewModel : ObservableObject
     private readonly IPlaylistService _playlists;
     private readonly ILibraryService _library;
     private readonly NavigationService _navigation;
+    private readonly ILocalizationService _loc;
 
     public ProfileViewModel(
         ISettingsService settings,
         IAlbumService albums,
         IPlaylistService playlists,
         ILibraryService library,
-        NavigationService navigation)
+        NavigationService navigation,
+        ILocalizationService localization)
     {
         _settings = settings;
         _navigation = navigation;
         _albums = albums;
         _playlists = playlists;
         _library = library;
+        _loc = localization;
         _settings.SettingsChanged += (_, _) => ApplyProfile();
+        _loc.LanguageChanged += (_, _) =>
+        {
+            RefreshCountLabels();
+            _ = LoadAsync();
+        };
     }
+
+    public ILocalizationService Loc => _loc;
+    public string PlaylistsCountLabel => string.Format(_loc.T("profile.countShort"), Playlists.Count);
+    public string AlbumsCountLabel => string.Format(_loc.T("profile.countShort"), Albums.Count);
 
     public ObservableCollection<ProfileAlbumCard> Albums { get; } = new();
     public ObservableCollection<ProfilePlaylistCard> Playlists { get; } = new();
@@ -125,9 +126,10 @@ public partial class ProfileViewModel : ObservableObject
         foreach (var playlist in await _playlists.GetPlaylistsAsync())
         {
             var thumbs = await PlaylistCoverHelper.GetThumbnailsAsync(_playlists, playlist.Id);
-            Playlists.Add(ProfilePlaylistCard.From(playlist, thumbs));
+            Playlists.Add(ProfilePlaylistCard.From(playlist, thumbs, FormatTrackCount(playlist.TrackCount)));
         }
         HasPlaylists = Playlists.Count > 0;
+        RefreshCountLabels();
     }
 
     private async Task LoadAlbumsAsync()
@@ -137,7 +139,7 @@ public partial class ProfileViewModel : ObservableObject
 
         foreach (var album in await _albums.GetUserAlbumsAsync())
         {
-            var card = ProfileAlbumCard.FromUserAlbum(album);
+            var card = ProfileAlbumCard.FromUserAlbum(album, FormatTrackCount(album.TrackCount));
             Albums.Add(card);
             seen.Add(card.Title);
         }
@@ -157,12 +159,20 @@ public partial class ProfileViewModel : ObservableObject
                 ArtistName = tracks.Select(t => t.ArtistName).FirstOrDefault(a => !string.IsNullOrWhiteSpace(a)) ?? "",
                 ThumbnailUrl = tracks.Select(t => t.ThumbnailUrl).FirstOrDefault(u => !string.IsNullOrWhiteSpace(u)),
                 TrackCount = tracks.Count,
-                LibraryTracks = tracks
+                LibraryTracks = tracks,
+                Subtitle = FormatTrackCount(tracks.Count)
             });
             seen.Add(group.Key);
         }
 
         HasAlbums = Albums.Count > 0;
+        RefreshCountLabels();
+    }
+
+    private void RefreshCountLabels()
+    {
+        OnPropertyChanged(nameof(PlaylistsCountLabel));
+        OnPropertyChanged(nameof(AlbumsCountLabel));
     }
 
     [RelayCommand]
@@ -189,4 +199,7 @@ public partial class ProfileViewModel : ObservableObject
 
     [RelayCommand]
     private void OpenSettings() => _navigation.Navigate(AppPage.Settings);
+
+    private string FormatTrackCount(int count) =>
+        string.Format(_loc.T("collections.songsCount"), count);
 }

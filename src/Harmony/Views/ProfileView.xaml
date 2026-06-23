@@ -34,11 +34,11 @@
                     <StackPanel Grid.Column="1" Margin="20,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="{Binding UserName}" FontSize="32" FontWeight="Bold" />
                         <TextBlock Margin="0,8,0,0" Foreground="#D8FFFFFF" FontSize="14">
-                            <Run Text="Установлено: " />
+                            <Run Text="{Binding Loc.ProfileInstalled}" />
                             <Run Text="{Binding InstalledDisplay, Mode=OneWay}" FontWeight="SemiBold" />
                         </TextBlock>
                     </StackPanel>
-                    <Button Grid.Column="2" Style="{StaticResource OutlineButton}" Content="Настройки"
+                    <Button Grid.Column="2" Style="{StaticResource OutlineButton}" Content="{Binding Loc.NavSettings}"
                             Command="{Binding OpenSettingsCommand}" VerticalAlignment="Center"
                             Foreground="White" />
                 </Grid>
@@ -46,17 +46,17 @@
 
             <!-- Playlists -->
             <Grid Margin="0,8,0,12">
-                <TextBlock Text="Мои плейлисты" Style="{StaticResource RzSectionTitle}" VerticalAlignment="Center" />
-                <TextBlock Text="{Binding Playlists.Count, StringFormat='{}{0} шт.'}" Style="{StaticResource RzMeta}"
+                <TextBlock Text="{Binding Loc.ProfileMyPlaylists}" Style="{StaticResource RzSectionTitle}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding PlaylistsCountLabel}" Style="{StaticResource RzMeta}"
                            HorizontalAlignment="Right" VerticalAlignment="Center" />
             </Grid>
 
             <Border Style="{StaticResource GlassPanel}" Padding="24" Effect="{x:Null}" Margin="0,0,0,20"
                     Visibility="{Binding HasPlaylists, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
                 <StackPanel HorizontalAlignment="Center">
-                    <TextBlock Text="Пока нет плейлистов" FontWeight="SemiBold" FontSize="16"
+                    <TextBlock Text="{Binding Loc.ProfileNoPlaylists}" FontWeight="SemiBold" FontSize="16"
                                Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
-                    <TextBlock Text="Создайте плейлист на странице «Плейлисты»."
+                    <TextBlock Text="{Binding Loc.ProfileNoPlaylistsHint}"
                                Style="{StaticResource RzBody}" TextAlignment="Center" Margin="0,8,0,0" />
                 </StackPanel>
             </Border>
@@ -84,20 +84,20 @@
 
             <!-- Albums -->
             <Grid Margin="0,0,0,12">
-                <TextBlock Text="Мои альбомы" Style="{StaticResource RzSectionTitle}" VerticalAlignment="Center" />
-                <TextBlock Text="{Binding Albums.Count, StringFormat='{}{0} шт.'}" Style="{StaticResource RzMeta}"
+                <TextBlock Text="{Binding Loc.ProfileMyAlbums}" Style="{StaticResource RzSectionTitle}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding AlbumsCountLabel}" Style="{StaticResource RzMeta}"
                            HorizontalAlignment="Right" VerticalAlignment="Center" />
             </Grid>
 
-            <TextBlock Text="Загрузка…" Style="{StaticResource RzBody}" Margin="0,0,0,12"
+            <TextBlock Text="{Binding Loc.CommonLoading}" Style="{StaticResource RzBody}" Margin="0,0,0,12"
                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
 
             <Border Style="{StaticResource GlassPanel}" Padding="24" Effect="{x:Null}"
                     Visibility="{Binding HasAlbums, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
                 <StackPanel HorizontalAlignment="Center">
-                    <TextBlock Text="Пока нет альбомов" FontWeight="SemiBold" FontSize="16"
+                    <TextBlock Text="{Binding Loc.ProfileNoAlbums}" FontWeight="SemiBold" FontSize="16"
                                Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
-                    <TextBlock Text="Импортируйте музыку в библиотеку или создайте альбом."
+                    <TextBlock Text="{Binding Loc.ProfileNoAlbumsHint}"
                                Style="{StaticResource RzBody}" TextAlignment="Center" Margin="0,8,0,0" />
                 </StackPanel>
             </Border>

@@ -8,11 +8,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 using CommunityToolkit.Mvvm.Input;
 
+using Harmony.Helpers;
 using Harmony.Models;
 
 using Harmony.Services;
 
 using Harmony.Services.Interfaces;
+
+using Harmony.Services.Localization;
 
 
 
@@ -39,6 +42,7 @@ public partial class AlbumDetailViewModel : ObservableObject
     private readonly ILyricsService _lyricsService;
 
     private readonly ISettingsService _settings;
+    private readonly ILocalizationService _loc;
 
     private CancellationTokenSource? _lyricsCts;
 
@@ -49,6 +53,8 @@ public partial class AlbumDetailViewModel : ObservableObject
     private IReadOnlyList<LyricLineViewModel> _lyricLineList = Array.Empty<LyricLineViewModel>();
 
     private double _lyricSyncScale = 1.0;
+    private bool _lyricsAreSynced;
+    private double _lyricsMetadataDuration;
 
 
 
@@ -66,7 +72,9 @@ public partial class AlbumDetailViewModel : ObservableObject
 
         ILyricsService lyricsService,
 
-        ISettingsService settings)
+        ISettingsService settings,
+
+        ILocalizationService localization)
 
     {
 
@@ -83,10 +91,14 @@ public partial class AlbumDetailViewModel : ObservableObject
         _lyricsService = lyricsService;
 
         _settings = settings;
+        _loc = localization;
+        _loc.LanguageChanged += (_, _) => RefreshLocalizedLabels();
 
         _player.PropertyChanged += OnPlayerChanged;
 
     }
+
+    public ILocalizationService Loc => _loc;
 
 
 
@@ -133,17 +145,17 @@ public partial class AlbumDetailViewModel : ObservableObject
     /// <summary>Raised when the active lyric line changes so the view can scroll.</summary>
     public event EventHandler<int>? ActiveLyricLineChanged;
 
-    public string LyricsTitle => "Текст песни";
+    public string LyricsTitle => _loc.T("album.lyricsTitle");
 
     public bool ShowLyricsEmpty => !IsLyricsLoading && LyricLines.Count == 0 && !string.IsNullOrWhiteSpace(LyricsStatus);
 
 
 
-    public string PageKindLabel => IsTrackList ? "NOW PLAYING" : "ALBUM";
+    public string PageKindLabel => IsTrackList ? _loc.T("common.nowPlaying") : _loc.T("album.pageAlbum");
 
     public string? HeroCoverUrl => FocusedTrack?.ThumbnailUrl ?? ThumbnailUrl;
 
-    public string FocusedTitle => FocusedTrack?.Title ?? "Select a track";
+    public string FocusedTitle => FocusedTrack?.Title ?? _loc.T("player.selectTrack");
 
     public string FocusedArtistName => FocusedTrack?.ArtistName ?? ArtistName;
 
@@ -229,7 +241,7 @@ public partial class AlbumDetailViewModel : ObservableObject
 
                 DescriptionLine = preloaded.Count == 1
                     ? $"{context.InitialTrack?.ArtistName} · {context.InitialTrack?.DurationDisplay}"
-                    : $"{preloaded.Count} tracks in queue";
+                    : string.Format(_loc.T("album.queueCount"), preloaded.Count);
 
             }
 
@@ -239,7 +251,7 @@ public partial class AlbumDetailViewModel : ObservableObject
 
                 tracks = await _albums.GetTracksAsync(userId);
 
-                DescriptionLine = "Your personal album — songs you imported or added.";
+                DescriptionLine = _loc.T("album.personalDesc");
 
             }
 
@@ -372,7 +384,7 @@ public partial class AlbumDetailViewModel : ObservableObject
             if (!string.IsNullOrWhiteSpace(data.Bio))
                 ArtistBio = data.Bio;
             else if (data.Fans > 0)
-                ArtistBio = $"{data.Name} · {data.Fans:N0} поклонников";
+                ArtistBio = string.Format(_loc.T("artist.fansLine"), data.Name, data.Fans);
             else
                 ArtistBio = data.Name;
         }
@@ -395,7 +407,7 @@ public partial class AlbumDetailViewModel : ObservableObject
 
             LyricLines.Clear();
 
-            LyricsStatus = "Выберите трек.";
+            LyricsStatus = _loc.T("album.lyricsSelectTrack");
 
             OnPropertyChanged(nameof(ShowLyricsEmpty));
 
@@ -443,7 +455,7 @@ public partial class AlbumDetailViewModel : ObservableObject
 
             {
 
-                LyricsStatus = "Текст не найден.";
+                LyricsStatus = _loc.T("album.lyricsNotFound");
 
                 OnPropertyChanged(nameof(ShowLyricsEmpty));
 
@@ -451,9 +463,13 @@ public partial class AlbumDetailViewModel : ObservableObject
 
             }
 
+            var playbackDuration = _player.DurationSeconds > 0 ? _player.DurationSeconds : duration;
+            var prepared = LyricSyncHelper.Prepare(data, duration, playbackDuration);
+            _lyricsAreSynced = prepared.IsSynced;
+            _lyricsMetadataDuration = duration;
+            _lyricSyncScale = prepared.SyncScale;
 
-
-            foreach (var line in data.Lines)
+            foreach (var line in prepared.Lines)
 
                 LyricLines.Add(new LyricLineViewModel(line.Text, line.StartSeconds));
 
@@ -484,68 +500,31 @@ public partial class AlbumDetailViewModel : ObservableObject
 
 
     private void RecalculateLyricSyncScale()
-
     {
-
         if (_lyricLineList.Count == 0)
-
         {
-
             _lyricSyncScale = 1.0;
-
             return;
-
         }
 
-
-
-        var duration = _player.DurationSeconds > 0
-
+        var playback = _player.DurationSeconds > 0
             ? _player.DurationSeconds
-
             : FocusedTrack?.DurationSeconds ?? 0;
 
-        var last = _lyricLineList[^1].StartSeconds;
-
-        _lyricSyncScale = duration > 30 && last > 15 && Math.Abs(last - duration) > 8
-
-            ? duration / last
-
-            : 1.0;
-
+        _lyricSyncScale = LyricSyncHelper.RecalculateScale(_lyricsAreSynced, _lyricsMetadataDuration, playback);
     }
 
 
 
     private void UpdateActiveLyricLine(double positionSeconds)
-
     {
-
         if (_lyricLineList.Count == 0) return;
 
-
-
-        var adjusted = positionSeconds / _lyricSyncScale + _settings.Current.LyricsOffsetSeconds;
-
-        var idx = -1;
-
-        for (var i = _lyricLineList.Count - 1; i >= 0; i--)
-
-        {
-
-            if (adjusted >= _lyricLineList[i].StartSeconds - 0.08)
-
-            {
-
-                idx = i;
-
-                break;
-
-            }
-
-        }
-
-
+        var idx = LyricSyncHelper.FindActiveIndex(
+            _lyricLineList,
+            positionSeconds,
+            _lyricSyncScale,
+            _settings.Current.LyricsOffsetSeconds);
 
         if (idx == ActiveLyricIndex) return;
 
@@ -707,15 +686,29 @@ public partial class AlbumDetailViewModel : ObservableObject
 
 
 
-    private static string BuildDescription(AlbumInfo? info, IReadOnlyList<Track> tracks)
+    private void RefreshLocalizedLabels()
+    {
+        OnPropertyChanged(nameof(LyricsTitle));
+        OnPropertyChanged(nameof(PageKindLabel));
+        OnPropertyChanged(nameof(FocusedTitle));
+        if (LyricLines.Count == 0)
+        {
+            if (FocusedTrack == null)
+                LyricsStatus = _loc.T("album.lyricsSelectTrack");
+            else if (!IsLyricsLoading && !string.IsNullOrWhiteSpace(LyricsStatus))
+                LyricsStatus = _loc.T("album.lyricsNotFound");
+        }
+    }
+
+    private string BuildDescription(AlbumInfo? info, IReadOnlyList<Track> tracks)
     {
         if (info == null)
         {
             if (tracks.Count == 1)
-                return $"Сингл · {tracks[0].DurationDisplay}";
+                return string.Format(_loc.T("album.singleFormat"), tracks[0].DurationDisplay);
             return tracks.Count > 0
-                ? $"Альбом · {tracks.Count} треков"
-                : "Альбом не найден.";
+                ? string.Format(_loc.T("album.tracksFormat"), tracks.Count)
+                : _loc.T("album.notFound");
         }
 
         var parts = new List<string>();
@@ -726,8 +719,8 @@ public partial class AlbumDetailViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(info.Label))
             parts.Add(info.Label);
         if (info.Fans > 0)
-            parts.Add($"{info.Fans:N0} поклонников");
-        return parts.Count > 0 ? string.Join(" · ", parts) : $"{tracks.Count} треков";
+            parts.Add(string.Format(_loc.T("artist.fansCount"), info.Fans));
+        return parts.Count > 0 ? string.Join(" · ", parts) : string.Format(_loc.T("album.tracksFormat"), tracks.Count);
     }
 
 

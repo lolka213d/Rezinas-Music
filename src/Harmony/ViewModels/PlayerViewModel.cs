@@ -68,6 +68,8 @@ public partial class PlayerViewModel : ObservableObject
         _loc.LanguageChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(RepeatModeHint));
+            OnPropertyChanged(nameof(CurrentArtistDisplay));
+            OnPropertyChanged(nameof(LyricsTooltip));
         };
 
         _volume = settings.Current.Volume;
@@ -117,6 +119,12 @@ public partial class PlayerViewModel : ObservableObject
     public int QueueCount => _queue.Count;
     public IReadOnlyList<Track> AllQueue => _queue;
 
+    public string CurrentArtistDisplay =>
+        string.IsNullOrWhiteSpace(CurrentTrack?.ArtistName)
+            ? _loc.T("player.selectTrack")
+            : CurrentTrack!.ArtistName;
+
+    public string LyricsTooltip => _loc.T("album.lyricsTitle");
     public string PositionDisplay => Format(PositionSeconds);
     public string DurationDisplay => Format(DurationSeconds);
     public double ProgressMaximum => Math.Max(1, DurationSeconds);
@@ -753,13 +761,19 @@ public partial class PlayerViewModel : ObservableObject
         _settings.Current.Volume = value;
     }
 
-    partial void OnCurrentTrackChanged(Track? value) => OnPropertyChanged(nameof(HasTrack));
+    partial void OnCurrentTrackChanged(Track? value)
+    {
+        OnPropertyChanged(nameof(HasTrack));
+        OnPropertyChanged(nameof(CurrentArtistDisplay));
+    }
+
     partial void OnPositionSecondsChanged(double value) => OnPropertyChanged(nameof(PositionDisplay));
     partial void OnDurationSecondsChanged(double value)
     {
         OnPropertyChanged(nameof(DurationDisplay));
         OnPropertyChanged(nameof(ProgressMaximum));
     }
+
     partial void OnRepeatModeChanged(RepeatMode value)
     {
         OnPropertyChanged(nameof(IsRepeatAll));

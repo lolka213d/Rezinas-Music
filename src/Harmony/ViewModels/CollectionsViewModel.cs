@@ -14,7 +14,7 @@ namespace Harmony.ViewModels;
 
 public enum CollectionKind { Albums, Playlists }
 
-public enum CollectionTrackSort { Title, Artist, Duration }
+public enum CollectionTrackSort { Order, Title, Artist, Duration }
 
 public enum CollectionViewMode { Compact, Rich }
 
@@ -97,7 +97,7 @@ public partial class CollectionsViewModel : ObservableObject
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private string _addSearchQuery = string.Empty;
     [ObservableProperty] private string _trackFilterQuery = string.Empty;
-    [ObservableProperty] private CollectionTrackSort _trackSort = CollectionTrackSort.Title;
+    [ObservableProperty] private CollectionTrackSort _trackSort = CollectionTrackSort.Order;
     [ObservableProperty] private CollectionViewMode _viewMode = CollectionViewMode.Rich;
     [ObservableProperty] private bool _favoritesOnly;
     [ObservableProperty] private bool _isAlbumsEmpty;
@@ -127,7 +127,7 @@ public partial class CollectionsViewModel : ObservableObject
         IsCreateDialogOpen = true;
         try
         {
-            var dialog = await Views.CreatePlaylistDialog.ShowAsync(_providers, _settings, owner);
+            var dialog = await Views.CreatePlaylistDialog.ShowAsync(_providers, _settings, _loc, owner);
             if (dialog == null) return;
 
             var pl = await _playlists.CreateAsync(dialog.PlaylistName);
@@ -494,7 +494,8 @@ public partial class CollectionsViewModel : ObservableObject
         {
             CollectionTrackSort.Artist => query.OrderBy(r => r.Track.ArtistName).ThenBy(r => r.Track.Title),
             CollectionTrackSort.Duration => query.OrderByDescending(r => r.Track.DurationSeconds).ThenBy(r => r.Track.Title),
-            _ => query.OrderBy(r => r.Track.Title)
+            CollectionTrackSort.Title => query.OrderBy(r => r.Track.Title),
+            _ => query.OrderBy(r => r.Index)
         };
 
         var list = query.ToList();
@@ -702,7 +703,7 @@ public partial class CollectionsViewModel : ObservableObject
     private async Task Play(Track? track)
     {
         if (track == null) return;
-        var queue = FilteredTracks.Count > 0 ? FilteredTracks.ToList() : Tracks.ToList();
+        var queue = Tracks.ToList();
         if (queue.Count == 0) return;
         await _player.PlayQueueAsync(queue, track);
     }

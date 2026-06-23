@@ -82,10 +82,19 @@ public partial class FavoritesViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private Task Play(Track track) => _player.PlayQueueAsync(Tracks, track);
+    private Task Play(Track? track)
+    {
+        if (track == null) return Task.CompletedTask;
+        return _player.PlayQueueAsync(Tracks.ToList(), track);
+    }
 
     [RelayCommand]
-    private Task PlayAll() => Tracks.Count > 0 ? _player.PlayQueueAsync(Tracks, Tracks[0]) : Task.CompletedTask;
+    private Task PlayAll()
+    {
+        if (Tracks.Count == 0) return Task.CompletedTask;
+        var queue = Tracks.ToList();
+        return _player.PlayQueueAsync(queue, queue[0]);
+    }
 
     [RelayCommand]
     private Task ShuffleAll()

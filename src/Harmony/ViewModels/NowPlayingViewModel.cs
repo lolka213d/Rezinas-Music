@@ -46,6 +46,7 @@ public partial class NowPlayingViewModel : ObservableObject
         _navigation = navigation;
         _playlists = playlists;
         _loc = localization;
+        _loc.LanguageChanged += (_, _) => RefreshLocalizedLabels();
         Player.PropertyChanged += OnPlayerPropertyChanged;
         Player.UpNext.CollectionChanged += (_, _) =>
         {
@@ -58,6 +59,8 @@ public partial class NowPlayingViewModel : ObservableObject
     }
 
     public PlayerViewModel Player { get; }
+
+    public ILocalizationService Loc => _loc;
 
     public ObservableCollection<TrackCreditLine> Credits { get; } = new();
 
@@ -78,13 +81,45 @@ public partial class NowPlayingViewModel : ObservableObject
     public bool HasQueueItems => Player.UpNext.Count > 0;
     public bool IsQueueEmpty => !HasQueueItems;
 
-    public string AboutArtistLabel => _loc.Language == "ru" ? "Об исполнителе" : "About the artist";
-    public string CreditsLabel => _loc.Language == "ru" ? "Участники" : "Credits";
-    public string ShowAllCreditsLabel => _loc.Language == "ru" ? "Показать все" : "Show all";
-    public string OpenSpotifyLabel => _loc.Language == "ru" ? "Spotify" : "Spotify";
-    public string QueueEmptyTitle => _loc.Language == "ru" ? "Очередь пуста" : "Your queue is empty";
-    public string SearchNewLabel => _loc.Language == "ru" ? "Найти что-нибудь новое" : "Search for something new";
-    public string FollowSpotifyLabel => _loc.Language == "ru" ? "Открыть в Spotify" : "Open in Spotify";
+    public string AboutArtistLabel => _loc.T("nowPlaying.aboutArtist");
+    public string CreditsLabel => _loc.T("nowPlaying.credits");
+    public string ShowAllCreditsLabel => _loc.T("nowPlaying.showAllCredits");
+    public string OpenSpotifyLabel => "Spotify";
+    public string QueueEmptyTitle => _loc.T("nowPlaying.queueEmpty");
+    public string SearchNewLabel => _loc.T("nowPlaying.searchNew");
+    public string FollowSpotifyLabel => _loc.T("nowPlaying.openSpotify");
+    public string ContextLabel => _loc.T("nowPlaying.context");
+    public string TabNowPlayingLabel => _loc.T("nowPlaying.tabNowPlaying");
+    public string TabQueueLabel => _loc.T("nowPlaying.tabQueue");
+    public string TabLyricsLabel => _loc.T("nowPlaying.tabLyrics");
+    public string UpNextLabel => _loc.T("nowPlaying.upNext");
+    public string AddToPlaylistLabel => _loc.T("nowPlaying.addToPlaylist");
+    public string LyricsOpenHint => _loc.T("lyrics.openOverlayHint");
+    public string LyricsOpenButton => _loc.T("lyrics.openButton");
+    public string ProfileLabel => _loc.T("common.profile");
+    public string NothingPlayingLabel => _loc.T("tray.nothingPlaying");
+    public string CurrentTitleDisplay => Player.CurrentTrack?.Title ?? NothingPlayingLabel;
+
+    private void RefreshLocalizedLabels()
+    {
+        OnPropertyChanged(nameof(AboutArtistLabel));
+        OnPropertyChanged(nameof(CreditsLabel));
+        OnPropertyChanged(nameof(ShowAllCreditsLabel));
+        OnPropertyChanged(nameof(QueueEmptyTitle));
+        OnPropertyChanged(nameof(SearchNewLabel));
+        OnPropertyChanged(nameof(FollowSpotifyLabel));
+        OnPropertyChanged(nameof(ContextLabel));
+        OnPropertyChanged(nameof(TabNowPlayingLabel));
+        OnPropertyChanged(nameof(TabQueueLabel));
+        OnPropertyChanged(nameof(TabLyricsLabel));
+        OnPropertyChanged(nameof(UpNextLabel));
+        OnPropertyChanged(nameof(AddToPlaylistLabel));
+        OnPropertyChanged(nameof(LyricsOpenHint));
+        OnPropertyChanged(nameof(LyricsOpenButton));
+        OnPropertyChanged(nameof(ProfileLabel));
+        OnPropertyChanged(nameof(NothingPlayingLabel));
+        OnPropertyChanged(nameof(CurrentTitleDisplay));
+    }
 
     private void OnPlayerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -93,6 +128,7 @@ public partial class NowPlayingViewModel : ObservableObject
             SelectedTab = NowPlayingTab.NowPlaying;
             _ = LoadContextAsync();
             OnPropertyChanged(nameof(HasTrack));
+            OnPropertyChanged(nameof(CurrentTitleDisplay));
         }
 
         if (e.PropertyName is nameof(PlayerViewModel.UpNext) or nameof(PlayerViewModel.QueueCount))

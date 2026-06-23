@@ -18,7 +18,7 @@
 
         <Button Grid.Column="0" Grid.ColumnSpan="7" Style="{StaticResource TrackRowHitButton}"
                 Command="{Binding PlayCommand, ElementName=Root}"
-                CommandParameter="{Binding CommandParameter, ElementName=Root}"
+                CommandParameter="{Binding Track, ElementName=Root}"
                 Visibility="{Binding PlayCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}"
                 Panel.ZIndex="0" />
 
@@ -92,7 +92,7 @@
 
             <Button Grid.Column="1" Width="32" Height="32" IsHitTestVisible="False"
                     Command="{Binding PlayCommand, ElementName=Root}"
-                    CommandParameter="{Binding CommandParameter, ElementName=Root}">
+                    CommandParameter="{Binding Track, ElementName=Root}">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
                         <Setter Property="Width" Value="32" />
@@ -138,7 +138,7 @@
         <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Right" Panel.ZIndex="2">
             <Button Style="{StaticResource IconButton}" Width="32" Height="32"
                     Command="{Binding PlaylistCommand, ElementName=Root}"
-                    CommandParameter="{Binding CommandParameter, ElementName=Root}"
+                    CommandParameter="{Binding Track, ElementName=Root}"
                     Visibility="{Binding PlaylistCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}">
                 <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPlaylist}" Width="14" Height="14" />
             </Button>

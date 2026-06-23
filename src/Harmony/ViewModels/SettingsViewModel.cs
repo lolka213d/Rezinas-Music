@@ -243,10 +243,8 @@ public partial class SettingsViewModel : ObservableObject
 
     public string TabDataLabel => _loc.T("settings.tabData");
 
-    public string SupportTitle => _loc.Language == "ru" ? "Поддержка автора" : "Support the author";
-    public string SupportHint => _loc.Language == "ru"
-        ? "Если вам нравится Rezinas Music, вы можете поддержать разработку:"
-        : "If you enjoy Rezinas Music, you can support development:";
+    public string SupportTitle => _loc.T("support.title");
+    public string SupportHint => _loc.T("support.hint");
 
 
 

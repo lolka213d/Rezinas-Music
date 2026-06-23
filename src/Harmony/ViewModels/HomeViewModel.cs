@@ -79,6 +79,9 @@ public partial class HomeViewModel : ObservableObject
         _loc.LanguageChanged += (_, _) => RefreshHomeTabLabels();
     }
 
+    public ILocalizationService Loc => _loc;
+    public string LoadingMoreLabel => _loc.T("home.loadingMore");
+
     private void RefreshHomeTabLabels()
     {
         if (HomeTabs.Count < 2) return;
@@ -87,6 +90,7 @@ public partial class HomeViewModel : ObservableObject
         HomeTabs[1] = new HomeTabChip("foryou", _loc.T("home.tabForYou"));
         SelectedTab = HomeTabs.FirstOrDefault(t => t.Id == id) ?? HomeTabs[0];
         OnPropertyChanged(nameof(HomeTabs));
+        OnPropertyChanged(nameof(LoadingMoreLabel));
     }
 
     public ObservableCollection<HomeTabChip> HomeTabs { get; } = new();

@@ -18,12 +18,12 @@
                                Style="{StaticResource Subtle}" FontSize="12" />
                 </StackPanel>
                 <Button Style="{StaticResource IconButton}" HorizontalAlignment="Right" VerticalAlignment="Top"
-                        ToolTip="Close lyrics" Command="{Binding CloseCommand}">
+                        ToolTip="{Binding CloseTooltip}" Command="{Binding CloseCommand}">
                     <Path Style="{StaticResource IconPath}" Width="16" Height="16" Data="{StaticResource IconClose}" />
                 </Button>
             </Grid>
 
-            <TextBlock Grid.Row="1" Text="Loading lyrics…" Style="{StaticResource Subtle}"
+            <TextBlock Grid.Row="1" Text="{Binding LoadingLabel}" Style="{StaticResource Subtle}"
                        VerticalAlignment="Center" HorizontalAlignment="Center"
                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
 

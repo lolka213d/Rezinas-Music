@@ -3,8 +3,10 @@ using System.ComponentModel;
 using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Harmony.Helpers;
 using Harmony.Models;
 using Harmony.Services.Interfaces;
+using Harmony.Services.Localization;
 
 namespace Harmony.ViewModels;
 
@@ -17,16 +19,25 @@ public partial class LyricsViewModel : ObservableObject
     private readonly ILyricsService _lyricsService;
     private readonly ISettingsService _settings;
     private readonly PlayerViewModel _player;
+    private readonly ILocalizationService _loc;
     private CancellationTokenSource? _cts;
     private int _loadGeneration;
     private IReadOnlyList<LyricLineViewModel> _lineList = Array.Empty<LyricLineViewModel>();
     private double _syncScale = 1.0;
+    private bool _lyricsAreSynced;
+    private double _lyricsMetadataDuration;
 
-    public LyricsViewModel(ILyricsService lyricsService, ISettingsService settings, PlayerViewModel player)
+    public LyricsViewModel(
+        ILyricsService lyricsService,
+        ISettingsService settings,
+        PlayerViewModel player,
+        ILocalizationService localization)
     {
         _lyricsService = lyricsService;
         _settings = settings;
         _player = player;
+        _loc = localization;
+        _loc.LanguageChanged += (_, _) => RefreshLocalizedLabels();
         _player.PropertyChanged += OnPlayerChanged;
     }
 
@@ -39,6 +50,8 @@ public partial class LyricsViewModel : ObservableObject
     [ObservableProperty] private int _activeLineIndex = -1;
 
     public bool ShowEmptyMessage => !IsLoading && Lines.Count == 0 && !string.IsNullOrWhiteSpace(StatusMessage);
+    public string LoadingLabel => _loc.T("lyrics.loading");
+    public string CloseTooltip => _loc.T("lyrics.closeTooltip");
 
     /// <summary>Raised when the active line changes so the view can scroll.</summary>
     public event EventHandler<int>? ActiveLineChanged;
@@ -97,7 +110,7 @@ public partial class LyricsViewModel : ObservableObject
         }
 
         if (_player.CurrentTrack == null)
-            StatusMessage = "Нет активного трека.";
+            StatusMessage = _loc.T("lyrics.noActiveTrack");
     }
 
     private async Task LoadLyricsAsync()
@@ -106,7 +119,7 @@ public partial class LyricsViewModel : ObservableObject
         if (track == null)
         {
             Lines.Clear();
-            StatusMessage = "Нет активного трека.";
+            StatusMessage = _loc.T("lyrics.noActiveTrack");
             IsLoading = false;
             OnPropertyChanged(nameof(ShowEmptyMessage));
             return;
@@ -126,22 +139,28 @@ public partial class LyricsViewModel : ObservableObject
 
         try
         {
-            var duration = EffectiveDuration();
+            var metadataDuration = EffectiveDuration(track);
             var data = await _lyricsService.GetLyricsAsync(
-                track.ArtistName, track.Title, duration, token);
+                track.ArtistName, track.Title, metadataDuration, token);
 
             if (token.IsCancellationRequested) return;
 
             if (data == null || data.Lines.Count == 0)
             {
-                StatusMessage = "Текст песни не найден.";
+                StatusMessage = _loc.T("lyrics.notFoundLong");
                 IsSynced = false;
                 OnPropertyChanged(nameof(ShowEmptyMessage));
                 return;
             }
 
-            IsSynced = data.IsSynced;
-            foreach (var line in data.Lines)
+            var playbackDuration = _player.DurationSeconds > 0 ? _player.DurationSeconds : metadataDuration;
+            var prepared = LyricSyncHelper.Prepare(data, metadataDuration, playbackDuration);
+            _lyricsAreSynced = prepared.IsSynced;
+            _lyricsMetadataDuration = metadataDuration;
+            _syncScale = prepared.SyncScale;
+            IsSynced = prepared.IsSynced;
+
+            foreach (var line in prepared.Lines)
                 Lines.Add(new LyricLineViewModel(line.Text, line.StartSeconds));
 
             _lineList = Lines.ToList();
@@ -156,46 +175,30 @@ public partial class LyricsViewModel : ObservableObject
         }
     }
 
-    private double EffectiveDuration()
+    private double EffectiveDuration(Track? track = null)
     {
+        track ??= _player.CurrentTrack;
         if (_player.DurationSeconds > 0) return _player.DurationSeconds;
-        return _player.CurrentTrack?.DurationSeconds ?? 0;
+        return track?.DurationSeconds ?? 0;
     }
 
-    /// <summary>
-    /// When the real track length differs from LRC timestamps (YouTube vs Deezer preview),
-    /// scale lyric times to match actual playback.
-    /// </summary>
     private void RecalculateSyncScale()
     {
-        if (!IsSynced || _lineList.Count == 0)
-        {
-            _syncScale = 1.0;
-            return;
-        }
-
-        var duration = EffectiveDuration();
-        var lastLrc = _lineList[^1].StartSeconds;
-        if (duration > 30 && lastLrc > 15 && Math.Abs(lastLrc - duration) > 8)
-            _syncScale = duration / lastLrc;
-        else
-            _syncScale = 1.0;
+        _syncScale = LyricSyncHelper.RecalculateScale(
+            _lyricsAreSynced,
+            _lyricsMetadataDuration,
+            EffectiveDuration());
     }
 
     private void UpdateActiveLine(double positionSeconds)
     {
         if (!IsOpen || _lineList.Count == 0) return;
 
-        var adjusted = positionSeconds / _syncScale + _settings.Current.LyricsOffsetSeconds;
-        var idx = -1;
-        for (var i = _lineList.Count - 1; i >= 0; i--)
-        {
-            if (adjusted >= _lineList[i].StartSeconds - 0.08)
-            {
-                idx = i;
-                break;
-            }
-        }
+        var idx = LyricSyncHelper.FindActiveIndex(
+            _lineList,
+            positionSeconds,
+            _syncScale,
+            _settings.Current.LyricsOffsetSeconds);
 
         if (idx == ActiveLineIndex) return;
 
@@ -208,6 +211,14 @@ public partial class LyricsViewModel : ObservableObject
         ActiveLineIndex = idx;
         if (idx >= 0)
             ActiveLineChanged?.Invoke(this, idx);
+    }
+
+    private void RefreshLocalizedLabels()
+    {
+        OnPropertyChanged(nameof(LoadingLabel));
+        OnPropertyChanged(nameof(CloseTooltip));
+        if (_player.CurrentTrack == null && IsOpen)
+            StatusMessage = _loc.T("lyrics.noActiveTrack");
     }
 
     partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(ShowEmptyMessage));
