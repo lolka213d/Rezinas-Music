@@ -1170,5 +1170,6 @@
 
     <Style TargetType="ContextMenu" BasedOn="{StaticResource DarkContextMenu}" />
     <Style TargetType="MenuItem" BasedOn="{StaticResource DarkMenuItem}" />
+    <Style TargetType="Separator" BasedOn="{StaticResource DarkMenuSeparator}" />
 
 </ResourceDictionary>

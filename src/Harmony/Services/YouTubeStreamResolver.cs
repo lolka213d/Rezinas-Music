@@ -55,7 +55,8 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
     private readonly ISettingsService _settings;
     private readonly ConcurrentDictionary<string, string> _urlCache = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, string> _videoIdCache = new(StringComparer.OrdinalIgnoreCase);
-    private const int MaxSearchCandidates = 8;
+    private const int MaxSearchCandidates = 12;
+    private const int MinMatchScore = 55;
 
     private sealed record DeezerTrackMeta(string Title, string Artist, int DurationSeconds, string? Preview);
 
@@ -142,6 +143,7 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         var queries = new[]
         {
             $"{searchArtist} {PrimaryTitle(searchTitle)} official audio",
+            $"{searchArtist} - {PrimaryTitle(searchTitle)}",
             $"{searchArtist} {PrimaryTitle(searchTitle)}",
             baseQuery
         };
@@ -197,18 +199,17 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         Track track, string query, string cacheKey, CancellationToken cancellationToken)
     {
         var candidates = 0;
+        string? bestVideoId = null;
+        string? bestTitle = null;
+        var bestScore = -1;
+
         await foreach (var video in _youtube.Search.GetVideosAsync(query, cancellationToken))
         {
             if (++candidates > MaxSearchCandidates)
                 break;
 
             var videoTitle = video.Title ?? string.Empty;
-            if (!VideoMatchesTrack(videoTitle, track))
-            {
-                _log.Info($"Skip title mismatch '{videoTitle}' for '{track.Title}'");
-                continue;
-            }
-
+            var channelTitle = video.Author?.ChannelTitle ?? string.Empty;
             var videoDuration = video.Duration?.TotalSeconds ?? 0;
             if (videoDuration < 30)
             {
@@ -227,24 +228,39 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
                 }
             }
 
-            var videoId = video.Id.Value;
-            _videoIdCache[cacheKey] = videoId;
-
-            _log.Info($"Trying YouTube video: {videoTitle} ({videoId})");
-
-            var streamUrl = await TryYoutubeExplodeStreamUrlAsync(video.Id, cancellationToken);
-            if (!string.IsNullOrWhiteSpace(streamUrl))
+            var score = ScoreVideoMatch(videoTitle, channelTitle, videoDuration, track);
+            if (score < MinMatchScore)
             {
-                _log.Info($"Online stream ready (YouTube): {track.Title}");
-                return RememberStream(cacheKey, streamUrl);
+                _log.Info($"Skip low score ({score}) '{videoTitle}' / '{channelTitle}' for '{track.ArtistName} — {track.Title}'");
+                continue;
             }
 
-            streamUrl = await TryPipedStreamUrlAsync(videoId, cancellationToken);
-            if (!string.IsNullOrWhiteSpace(streamUrl))
+            if (score > bestScore)
             {
-                _log.Info($"Online stream ready (Piped): {track.Title}");
-                return RememberStream(cacheKey, streamUrl);
+                bestScore = score;
+                bestVideoId = video.Id.Value;
+                bestTitle = videoTitle;
             }
+        }
+
+        if (string.IsNullOrWhiteSpace(bestVideoId))
+            return null;
+
+        _videoIdCache[cacheKey] = bestVideoId;
+        _log.Info($"Best YouTube match (score {bestScore}): {bestTitle} ({bestVideoId})");
+
+        var streamUrl = await TryYoutubeExplodeStreamUrlAsync(new YoutubeExplode.Videos.VideoId(bestVideoId), cancellationToken);
+        if (!string.IsNullOrWhiteSpace(streamUrl))
+        {
+            _log.Info($"Online stream ready (YouTube): {track.Title}");
+            return RememberStream(cacheKey, streamUrl);
+        }
+
+        streamUrl = await TryPipedStreamUrlAsync(bestVideoId, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(streamUrl))
+        {
+            _log.Info($"Online stream ready (Piped): {track.Title}");
+            return RememberStream(cacheKey, streamUrl);
         }
 
         return null;
@@ -275,43 +291,129 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         }
     }
 
-    private static bool VideoMatchesTrack(string videoTitle, Track track)
+    private static int ScoreVideoMatch(string videoTitle, string channelTitle, double videoDuration, Track track)
     {
         var video = NormalizeForMatch(videoTitle);
-        if (video.Length == 0) return false;
+        if (video.Length == 0) return 0;
 
         var unwanted = new[] { "live", "karaoke", "instrumental", "cover version", "nightcore", "sped up" };
         foreach (var word in unwanted)
         {
             if (video.Contains(word, StringComparison.OrdinalIgnoreCase)
                 && !NormalizeForMatch(track.Title).Contains(word, StringComparison.OrdinalIgnoreCase))
-                return false;
+                return 0;
         }
 
         var title = NormalizeForMatch(PrimaryTitle(track.Title));
-        var artist = NormalizeForMatch(track.ArtistName);
-        if (title.Length == 0) return false;
+        if (title.Length == 0) return 0;
 
         var titleTokens = title.Split(' ', StringSplitOptions.RemoveEmptyEntries)
             .Where(t => t.Length > 2)
             .ToList();
-        if (titleTokens.Count == 0)
-            return video.Contains(title, StringComparison.OrdinalIgnoreCase);
+        var titleRatio = titleTokens.Count == 0
+            ? (video.Contains(title, StringComparison.OrdinalIgnoreCase) ? 1.0 : 0.0)
+            : (double)titleTokens.Count(t => video.Contains(t, StringComparison.OrdinalIgnoreCase)) / titleTokens.Count;
+        if (titleRatio < 0.55) return 0;
 
-        var matchedTitle = titleTokens.Count(t => video.Contains(t, StringComparison.OrdinalIgnoreCase));
-        var titleRatio = (double)matchedTitle / titleTokens.Count;
-        if (titleRatio < 0.55) return false;
+        var haystack = $"{video} {NormalizeForMatch(channelTitle)}";
+        if (!ArtistMatches(haystack, track.ArtistName))
+            return 0;
 
-        if (string.IsNullOrWhiteSpace(artist)) return true;
+        var score = (int)Math.Round(titleRatio * 50);
+        score += ArtistMatchStrength(haystack, track.ArtistName);
 
-        var artistTokens = artist.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Where(t => t.Length > 2)
+        if (video.Contains("official", StringComparison.OrdinalIgnoreCase))
+            score += 8;
+        if (video.Contains("audio", StringComparison.OrdinalIgnoreCase))
+            score += 4;
+
+        if (track.DurationSeconds > 0 && videoDuration > 0)
+        {
+            var delta = Math.Abs(videoDuration - track.DurationSeconds);
+            var tolerance = Math.Max(20, track.DurationSeconds * 0.12);
+            if (delta <= tolerance / 2)
+                score += 10;
+            else if (delta <= tolerance)
+                score += 5;
+        }
+
+        return score;
+    }
+
+    private static int ArtistMatchStrength(string haystack, string artistName)
+    {
+        if (string.IsNullOrWhiteSpace(artistName)) return 20;
+
+        var best = 0;
+        foreach (var variant in ArtistMatchVariants(PrimaryArtist(artistName)))
+        {
+            if (variant.Length >= 2 && haystack.Contains(variant, StringComparison.OrdinalIgnoreCase))
+                best = Math.Max(best, variant.Length >= 4 ? 35 : 28);
+        }
+
+        if (best > 0) return best;
+
+        var artist = NormalizeForMatch(PrimaryArtist(artistName));
+        var tokens = artist.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Where(t => t.Length >= 2)
             .ToList();
-        if (artistTokens.Count == 0)
-            return video.Contains(artist, StringComparison.OrdinalIgnoreCase);
+        if (tokens.Count == 0) return 0;
 
-        var matchedArtist = artistTokens.Count(t => video.Contains(t, StringComparison.OrdinalIgnoreCase));
-        return matchedArtist > 0 || titleRatio >= 0.85;
+        var matched = tokens.Count(t => haystack.Contains(t, StringComparison.OrdinalIgnoreCase));
+        var ratio = (double)matched / tokens.Count;
+        if (matched == 0 || ratio < 0.5) return 0;
+
+        return 20 + (int)Math.Round(ratio * 15);
+    }
+
+    private static bool ArtistMatches(string haystack, string artistName)
+        => ArtistMatchStrength(haystack, artistName) > 0;
+
+    private static string PrimaryArtist(string artist) =>
+        artist.Split(',')[0].Trim();
+
+    private static IEnumerable<string> ArtistMatchVariants(string artist)
+    {
+        var normalized = NormalizeForMatch(artist);
+        if (normalized.Length > 0)
+            yield return normalized;
+
+        var romanized = TransliterateCyrillicToLatin(normalized);
+        if (romanized.Length > 0 && !romanized.Equals(normalized, StringComparison.OrdinalIgnoreCase))
+            yield return romanized;
+    }
+
+    private static string TransliterateCyrillicToLatin(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+
+        ReadOnlySpan<(char From, string To)> map =
+        [
+            ('а', "a"), ('б', "b"), ('в', "v"), ('г', "g"), ('д', "d"), ('е', "e"), ('ё', "yo"),
+            ('ж', "zh"), ('з', "z"), ('и', "i"), ('й', "y"), ('к', "k"), ('л', "l"), ('м', "m"),
+            ('н', "n"), ('о', "o"), ('п', "p"), ('р', "r"), ('с', "s"), ('т', "t"), ('у', "u"),
+            ('ф', "f"), ('х', "h"), ('ц', "ts"), ('ч', "ch"), ('ш', "sh"), ('щ', "sch"),
+            ('ъ', ""), ('ы', "y"), ('ь', ""), ('э', "e"), ('ю', "yu"), ('я', "ya")
+        ];
+
+        var sb = new System.Text.StringBuilder(value.Length * 2);
+        foreach (var ch in value)
+        {
+            var lower = char.ToLowerInvariant(ch);
+            var found = false;
+            foreach (var (from, to) in map)
+            {
+                if (lower != from) continue;
+                sb.Append(to);
+                found = true;
+                break;
+            }
+
+            if (!found)
+                sb.Append(lower);
+        }
+
+        return sb.ToString().Trim();
     }
 
     private static string NormalizeForMatch(string value)
@@ -383,7 +485,8 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         try
         {
             var video = await _youtube.Videos.GetAsync(videoId, ct);
-            if (!VideoMatchesTrack(video.Title, track))
+            var channelTitle = video.Author?.ChannelTitle ?? string.Empty;
+            if (ScoreVideoMatch(video.Title, channelTitle, video.Duration?.TotalSeconds ?? 0, track) < MinMatchScore)
             {
                 _log.Info($"Drop stale video-id cache for '{track.Title}' ({video.Title})");
                 return null;

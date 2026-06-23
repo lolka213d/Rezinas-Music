@@ -41,7 +41,10 @@ public partial class CollectionsView
             Header = vm.FindSongsTitle,
             Command = vm.ToggleAddPanelCommand
         });
-        menu.Items.Add(new Separator());
+        menu.Items.Add(new Separator
+        {
+            Style = (Style)Application.Current.FindResource("DarkMenuSeparator")
+        });
         menu.Items.Add(new MenuItem
         {
             Header = vm.Loc.T("common.delete"),

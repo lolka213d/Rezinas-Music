@@ -67,7 +67,11 @@ public partial class LibraryViewModel : ObservableObject
     public string StatTracksLabel => _loc.T("library.statTracks");
     public string StatArtistsLabel => _loc.T("library.statArtists");
     public string StatAlbumsLabel => _loc.T("library.statAlbums");
-    public string StatDurationLabel => _loc.T("library.statDuration");
+    public string SongsTitleLabel => _loc.T("library.songs");
+    public string SmartMixesLabel => _loc.T("library.smartMixes");
+    public string PlayAllLabel => _loc.T("collections.playAll");
+    public bool HasTracks => _allTracks.Count > 0;
+    public string StatsLine => string.Format(_loc.T("library.statsLine"), TotalTracks, TotalArtists, TotalAlbums, TotalDurationDisplay);
 
     public async Task LoadAsync()
     {
@@ -96,6 +100,8 @@ public partial class LibraryViewModel : ObservableObject
         }
         HasSmartPlaylists = SmartPlaylists.Count > 0;
         UpdateStats();
+        OnPropertyChanged(nameof(HasTracks));
+        OnPropertyChanged(nameof(StatsLine));
     }
 
     private void UpdateStats()
@@ -105,6 +111,8 @@ public partial class LibraryViewModel : ObservableObject
         TotalAlbums = _allTracks.Select(t => t.AlbumName).Where(n => !string.IsNullOrWhiteSpace(n)).Distinct().Count();
         var secs = _allTracks.Sum(t => t.DurationSeconds);
         TotalDurationDisplay = FormatDuration(secs);
+        OnPropertyChanged(nameof(StatsLine));
+        OnPropertyChanged(nameof(HasTracks));
     }
 
     private static string FormatDuration(double seconds)
@@ -135,6 +143,21 @@ public partial class LibraryViewModel : ObservableObject
 
         foreach (var t in filtered) Tracks.Add(t);
         IsEmpty = Tracks.Count == 0;
+    }
+
+    [RelayCommand]
+    private Task PlayAll()
+    {
+        if (_allTracks.Count == 0) return Task.CompletedTask;
+        return _player.PlayQueueAsync(_allTracks, _allTracks[0]);
+    }
+
+    [RelayCommand]
+    private Task ShuffleAll()
+    {
+        if (_allTracks.Count == 0) return Task.CompletedTask;
+        var shuffled = _allTracks.OrderBy(_ => Random.Shared.Next()).ToList();
+        return _player.PlayQueueAsync(shuffled, shuffled[0]);
     }
 
     [RelayCommand]

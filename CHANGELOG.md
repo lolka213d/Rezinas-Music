@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.6
+
+- Playback: require artist match when resolving YouTube streams (title + artist + channel); pick best candidate instead of first partial title match
+- Search: fixed filter chips — active tab uses purple accent with readable text instead of white circle
+- Playlists: dark separator in ⋯ menu (no bright white line)
+- Library: redesigned hub with gradient hero, section cards, and polished songs/history layout
+
 ## 1.2.5
 
 - Playback: stricter YouTube match (title/artist/duration), Deezer metadata refresh and preview fallback — fixes wrong song audio

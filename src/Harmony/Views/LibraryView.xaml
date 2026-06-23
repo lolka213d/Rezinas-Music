@@ -1,11 +1,9 @@
 <UserControl x:Class="Harmony.Views.LibraryView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:views="clr-namespace:Harmony.Views"
              xmlns:cmp="clr-namespace:Harmony.Components">
-    <Grid Margin="{StaticResource PagePadding}">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -13,42 +11,60 @@
             <RowDefinition Height="*" MinHeight="200" />
         </Grid.RowDefinitions>
 
-        <!-- Header + actions -->
-        <Grid Grid.Row="0" Margin="0,0,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel>
-                <TextBlock Text="{Binding Loc.LibraryTitle}" Style="{StaticResource RzPageTitle}" FontSize="34" />
-                <TextBlock Text="{Binding Loc.LibrarySubtitle}" Style="{StaticResource RzBody}" Margin="0,4,0,0"
-                           Visibility="{Binding Loc.LibrarySubtitle, Converter={StaticResource NullToVisibility}}" />
-            </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <Button Style="{StaticResource OutlineButton}" Content="{Binding ImportFolderLabel}"
-                        Command="{Binding ImportFolderCommand}" Margin="0,0,8,0" />
-                <Button Style="{StaticResource PillButton}" Content="{Binding Loc.LibraryImport}"
-                        Command="{Binding ImportFromPcCommand}" />
-            </StackPanel>
-        </Grid>
+        <!-- Section hero -->
+        <Border Grid.Row="0" CornerRadius="18" Padding="20,18" Margin="0,0,0,16" ClipToBounds="True"
+                BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#4438BDF8" Offset="0" />
+                    <GradientStop Color="#332563EB" Offset="0.55" />
+                    <GradientStop Color="#22101820" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="56" Height="56" CornerRadius="14" Background="#22FFFFFF">
+                        <Path Data="{StaticResource IconLibrary}" Fill="White" Stretch="Uniform" Width="24" Height="24" />
+                    </Border>
+                    <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding SongsTitleLabel}" FontSize="24" FontWeight="Bold" />
+                        <TextBlock Text="{Binding StatsLine}" FontSize="13" Margin="0,5,0,0" Foreground="#D0FFFFFF" />
+                        <TextBlock Text="{Binding Loc.LibrarySubtitle}" Style="{StaticResource RzMeta}" FontSize="12"
+                                   Margin="0,4,0,0" Foreground="#B8FFFFFF" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Style="{StaticResource OutlineButton}" Content="{Binding ImportFolderLabel}"
+                            Command="{Binding ImportFolderCommand}" Margin="0,0,8,0" />
+                    <Button Style="{StaticResource OutlineButton}" Content="{Binding Loc.LibraryImport}"
+                            Command="{Binding ImportFromPcCommand}" Margin="0,0,8,0" />
+                    <Button Style="{StaticResource OutlineButton}" Content="{Binding Loc.CollectionsShuffle}"
+                            Command="{Binding ShuffleAllCommand}" Margin="0,0,8,0"
+                            Visibility="{Binding HasTracks, Converter={StaticResource BoolToVisibility}}" />
+                    <Button Style="{StaticResource PillButton}" Command="{Binding PlayAllCommand}" Padding="16,9"
+                            Visibility="{Binding HasTracks, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconPlay}" Fill="White" Stretch="Uniform" Width="12" Height="12" />
+                            <TextBlock Text="{Binding PlayAllLabel}" Margin="8,0,0,0" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
 
-        <!-- Stats -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,16">
-            <cmp:StatCard Label="{Binding StatTracksLabel}" Value="{Binding TotalTracks}" />
-            <cmp:StatCard Label="{Binding StatArtistsLabel}" Value="{Binding TotalArtists}" />
-            <cmp:StatCard Label="{Binding StatAlbumsLabel}" Value="{Binding TotalAlbums}" />
-            <cmp:StatCard Label="{Binding StatDurationLabel}" Value="{Binding TotalDurationDisplay}" />
-        </StackPanel>
-
-        <!-- Toolbar -->
-        <Border Grid.Row="2" Style="{StaticResource GlassPanel}" Padding="12,10" Margin="0,0,0,12" Effect="{x:Null}">
+        <!-- Search + filter -->
+        <Border Grid.Row="1" Style="{StaticResource GlassPanel}" Padding="12,10" Margin="0,0,0,12" Effect="{x:Null}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MinWidth="180" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Style="{StaticResource RzSearchBox}" Margin="0,0,10,0">
+                <Border Grid.Column="0" Style="{StaticResource RzSearchBox}" Margin="0,0,12,0">
                     <Grid>
                         <Path Data="{StaticResource IconSearch}" Fill="{StaticResource TextMutedBrush}"
                               Stretch="Uniform" Width="16" Height="16" Margin="12,0,0,0"
@@ -60,41 +76,61 @@
                 </Border>
                 <TextBlock Grid.Column="1" Text="{Binding Loc.CommonFilterArtist}" Style="{StaticResource RzMeta}"
                            VerticalAlignment="Center" Margin="0,0,8,0" />
-                <ComboBox Grid.Column="2" Width="200"
+                <ComboBox Grid.Column="2" Width="200" MinWidth="160"
                           ItemsSource="{Binding Artists}"
                           SelectedItem="{Binding SelectedArtist, Mode=TwoWay}" />
             </Grid>
         </Border>
 
-        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" Style="{StaticResource Subtle}"
+        <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Style="{StaticResource Subtle}"
                    Foreground="{StaticResource AccentBrush}" Margin="0,0,0,8"
                    Visibility="{Binding StatusMessage, Converter={StaticResource NullToVisibility}}" />
 
-        <!-- Smart playlists row -->
-        <ItemsControl Grid.Row="4" ItemsSource="{Binding SmartPlaylists}" Margin="0,0,0,12"
-                      Visibility="{Binding HasSmartPlaylists, Converter={StaticResource BoolToVisibility}}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Button Style="{StaticResource GlassQuickCard}" Width="200" MinHeight="56" Margin="0,0,10,0"
-                            Command="{Binding DataContext.PlaySmartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                            CommandParameter="{Binding}">
-                        <StackPanel>
-                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" />
-                            <TextBlock Text="{Binding Subtitle}" Style="{StaticResource RzMeta}" Margin="0,2,0,0" />
-                        </StackPanel>
-                    </Button>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <!-- Smart mixes -->
+        <StackPanel Grid.Row="3" Margin="0,0,0,12"
+                    Visibility="{Binding HasSmartPlaylists, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Text="{Binding SmartMixesLabel}" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" />
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding SmartPlaylists}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Style="{StaticResource GlassQuickCard}" Width="220" MinHeight="72" Margin="0,0,10,0"
+                                    Command="{Binding DataContext.PlaySmartCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="44" Height="44" CornerRadius="12" Margin="0,0,12,0">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                <GradientStop Color="#668B5CF6" Offset="0" />
+                                                <GradientStop Color="#447C3AED" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <Path Data="{StaticResource IconPlay}" Fill="White" Stretch="Uniform" Width="16" Height="16" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Text="{Binding Subtitle}" Style="{StaticResource RzMeta}" Margin="0,3,0,0"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </StackPanel>
 
         <!-- Track list -->
-        <Border Grid.Row="5" Style="{StaticResource GlassPanel}" Padding="10,8" Effect="{x:Null}"
-                MaxWidth="920" HorizontalAlignment="Stretch">
+        <Border Grid.Row="4" Style="{StaticResource GlassPanel}" Padding="10,8" Effect="{x:Null}">
             <Grid>
                 <cmp:EmptyState Title="{Binding Loc.LibraryEmpty}"
                                 Description="{Binding Loc.LibraryEmptyImportHint}"

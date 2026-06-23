@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:views="clr-namespace:Harmony.Views"
              xmlns:cmp="clr-namespace:Harmony.Components">
-    <Grid Margin="{StaticResource PagePadding}">
+    <Grid Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" MinHeight="200" />

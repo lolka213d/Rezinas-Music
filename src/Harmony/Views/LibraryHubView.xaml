@@ -1,62 +1,104 @@
-<UserControl x:Class="Harmony.Views.LibraryHubView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:Harmony.ViewModels">
-    <Grid Margin="28,24,28,120">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" MinHeight="360" />
-        </Grid.RowDefinitions>
-
-        <Grid Grid.Row="0" Margin="0,0,0,16">
-            <StackPanel>
-                <TextBlock Text="{Binding SectionTitle}" FontSize="32" FontWeight="Bold" />
-                <TextBlock Text="{Binding SectionSubtitle}" Style="{StaticResource Muted}" FontSize="14" Margin="0,6,0,0" />
-            </StackPanel>
-            <Button Style="{StaticResource PillButton}" HorizontalAlignment="Right" VerticalAlignment="Top"
-                    Content="{Binding Loc.CommonCreate}" Command="{Binding CreatePlaylistCommand}" Padding="18,10"
-                    Visibility="{Binding ShowCreateButton, Converter={StaticResource BoolToVisibility}}" />
-        </Grid>
-
-        <ItemsControl Grid.Row="1" ItemsSource="{Binding LibraryShortcuts}" Margin="0,0,0,14">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type vm:LibraryShortcutItem}">
-                    <Button Content="{Binding Title}" Margin="0,0,8,0"
-                            Command="{Binding DataContext.SelectSectionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                            CommandParameter="{Binding Section}">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource FilterChip}">
-                                <Style.Triggers>
-                                    <DataTrigger Value="True">
-                                        <DataTrigger.Binding>
-                                            <MultiBinding Converter="{StaticResource FilterChipSelected}">
-                                                <Binding Path="Section" />
-                                                <Binding Path="DataContext.SelectedSection"
-                                                         RelativeSource="{RelativeSource AncestorType=UserControl}" />
-                                            </MultiBinding>
-                                        </DataTrigger.Binding>
-                                        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-                                        <Setter Property="Foreground" Value="White" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-        <ContentControl Grid.Row="2"
-                        Content="{Binding CurrentSectionPage}"
-                        VerticalAlignment="Stretch"
-                        HorizontalAlignment="Stretch"
-                        VerticalContentAlignment="Stretch"
-                        HorizontalContentAlignment="Stretch" />
-    </Grid>
-</UserControl>
+<UserControl x:Class="Harmony.Views.LibraryHubView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Harmony.ViewModels">
+    <UserControl.Resources>
+        <Style x:Key="LibraryNavCard" TargetType="Button" BasedOn="{StaticResource GlassQuickCard}">
+            <Setter Property="MinHeight" Value="88" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Style.Triggers>
+                <DataTrigger Value="True">
+                    <DataTrigger.Binding>
+                        <MultiBinding Converter="{StaticResource FilterChipSelected}">
+                            <Binding Path="Section" />
+                            <Binding Path="DataContext.SelectedSection"
+                                     RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                        </MultiBinding>
+                    </DataTrigger.Binding>
+                    <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                    <Setter Property="Background" Value="#338B5CF6" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="{StaticResource PagePadding}">
+
+            <!-- Hero -->
+            <Border CornerRadius="20" Padding="24,20" Margin="0,0,0,20" ClipToBounds="True"
+                    BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#558B5CF6" Offset="0" />
+                        <GradientStop Color="#337C3AED" Offset="0.45" />
+                        <GradientStop Color="#2838BDF8" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="64" Height="64" CornerRadius="16" Background="#33FFFFFF">
+                            <Path Data="{StaticResource IconLibrary}" Fill="White" Stretch="Uniform" Width="28" Height="28" />
+                        </Border>
+                        <StackPanel Margin="18,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding HubTitle}" FontSize="32" FontWeight="Bold" />
+                            <TextBlock Text="{Binding HubSubtitle}" FontSize="13" Margin="0,6,0,0"
+                                       Foreground="#D8FFFFFF" TextWrapping="Wrap" MaxWidth="560" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Grid.Column="1" Style="{StaticResource PillButton}" VerticalAlignment="Center"
+                            Content="{Binding Loc.CommonCreate}" Command="{Binding CreatePlaylistCommand}"
+                            Padding="18,10"
+                            Visibility="{Binding ShowCreateButton, Converter={StaticResource BoolToVisibility}}" />
+                </Grid>
+            </Border>
+
+            <!-- Section cards -->
+            <ItemsControl ItemsSource="{Binding LibraryShortcuts}" Margin="0,0,0,24">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="4" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:LibraryShortcutItem}">
+                        <Button Style="{StaticResource LibraryNavCard}"
+                                Command="{Binding DataContext.SelectSectionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding Section}">
+                            <Grid Margin="14,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="42" Height="42" CornerRadius="12" Background="#18FFFFFF" Margin="0,0,12,0">
+                                    <Path Data="{Binding IconData}" Fill="{StaticResource TextPrimaryBrush}"
+                                          Stretch="Uniform" Width="20" Height="20" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" />
+                                    <TextBlock Text="{Binding Subtitle}" Style="{StaticResource RzMeta}" FontSize="11"
+                                               Margin="0,3,0,0" TextTrimming="CharacterEllipsis" MaxHeight="32"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Active section -->
+            <ContentControl Content="{Binding CurrentSectionPage}"
+                            VerticalAlignment="Stretch"
+                            HorizontalAlignment="Stretch"
+                            VerticalContentAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

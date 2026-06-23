@@ -4,6 +4,24 @@
              xmlns:vm="clr-namespace:Harmony.ViewModels"
              xmlns:views="clr-namespace:Harmony.Views"
              xmlns:img="clr-namespace:Harmony.Helpers">
+    <UserControl.Resources>
+        <Style x:Key="SearchTabChip" TargetType="Button" BasedOn="{StaticResource FilterChip}">
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="MinWidth" Value="72" />
+            <Style.Triggers>
+                <DataTrigger Value="True">
+                    <DataTrigger.Binding>
+                        <MultiBinding Converter="{StaticResource FilterChipSelected}">
+                            <Binding Path="CommandParameter" RelativeSource="{RelativeSource Self}" />
+                            <Binding Path="SelectedTab" />
+                        </MultiBinding>
+                    </DataTrigger.Binding>
+                    <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="White" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
     <Grid Margin="{StaticResource PagePadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -82,66 +100,16 @@
                 <!-- Filter chips -->
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,0,0,20">
                     <StackPanel Orientation="Horizontal">
-                        <Button Content="{Binding TabAllLabel}" Command="{Binding SelectTabCommand}" CommandParameter="{x:Static vm:SearchTab.All}" Margin="0,0,8,0">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource FilterChip}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedTab}" Value="{x:Static vm:SearchTab.All}">
-                                            <Setter Property="Background" Value="White" />
-                                            <Setter Property="Foreground" Value="Black" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Button Content="{Binding TabTracksLabel}" Command="{Binding SelectTabCommand}" CommandParameter="{x:Static vm:SearchTab.Tracks}" Margin="0,0,8,0">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource FilterChip}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedTab}" Value="{x:Static vm:SearchTab.Tracks}">
-                                            <Setter Property="Background" Value="White" />
-                                            <Setter Property="Foreground" Value="Black" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Button Content="{Binding TabAlbumsLabel}" Command="{Binding SelectTabCommand}" CommandParameter="{x:Static vm:SearchTab.Albums}" Margin="0,0,8,0">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource FilterChip}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedTab}" Value="{x:Static vm:SearchTab.Albums}">
-                                            <Setter Property="Background" Value="White" />
-                                            <Setter Property="Foreground" Value="Black" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Button Content="{Binding TabArtistsLabel}" Command="{Binding SelectTabCommand}" CommandParameter="{x:Static vm:SearchTab.Artists}">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource FilterChip}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedTab}" Value="{x:Static vm:SearchTab.Artists}">
-                                            <Setter Property="Background" Value="White" />
-                                            <Setter Property="Foreground" Value="Black" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Button Content="{Binding TabPodcastsLabel}" Command="{Binding SelectTabCommand}" CommandParameter="{x:Static vm:SearchTab.Podcasts}" Margin="8,0,0,0">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource FilterChip}">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedTab}" Value="{x:Static vm:SearchTab.Podcasts}">
-                                            <Setter Property="Background" Value="White" />
-                                            <Setter Property="Foreground" Value="Black" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
+                        <Button Content="{Binding TabAllLabel}" Command="{Binding SelectTabCommand}"
+                                CommandParameter="{x:Static vm:SearchTab.All}" Style="{StaticResource SearchTabChip}" />
+                        <Button Content="{Binding TabTracksLabel}" Command="{Binding SelectTabCommand}"
+                                CommandParameter="{x:Static vm:SearchTab.Tracks}" Style="{StaticResource SearchTabChip}" />
+                        <Button Content="{Binding TabAlbumsLabel}" Command="{Binding SelectTabCommand}"
+                                CommandParameter="{x:Static vm:SearchTab.Albums}" Style="{StaticResource SearchTabChip}" />
+                        <Button Content="{Binding TabArtistsLabel}" Command="{Binding SelectTabCommand}"
+                                CommandParameter="{x:Static vm:SearchTab.Artists}" Style="{StaticResource SearchTabChip}" />
+                        <Button Content="{Binding TabPodcastsLabel}" Command="{Binding SelectTabCommand}"
+                                CommandParameter="{x:Static vm:SearchTab.Podcasts}" Style="{StaticResource SearchTabChip}" />
                     </StackPanel>
                 </ScrollViewer>
 
