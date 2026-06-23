@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rezinas Music — Windows desktop player</title>
+  <meta name="description" content="Rezinas Music — dark glass desktop player for Windows. Playlists, radio, lyrics, Spotify sync." />
+  <link rel="icon" href="assets/app-icon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="bg-glow bg-glow--violet"></div>
+  <div class="bg-glow bg-glow--cyan"></div>
+
+  <header class="header">
+    <div class="container header__inner">
+      <a class="brand" href="#">
+        <img src="assets/app-icon.png" alt="" width="36" height="36" class="brand__icon" />
+        <span>Rezinas Music</span>
+      </a>
+      <nav class="nav">
+        <a href="#download">Download</a>
+        <a href="#features">Features</a>
+        <a href="https://github.com/lolka213d/Rezinas-Music" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <div class="hero__text">
+        <p class="eyebrow">Windows · .NET 8 · Dark glass UI</p>
+        <h1>Your music,<br />one premium player.</h1>
+        <p class="lead">
+          Search, playlists, favorites, «My Wave» radio, synced lyrics, and a bottom player bar —
+          built for long listening sessions.
+        </p>
+        <div class="hero__actions">
+          <a id="download-btn" class="btn btn--primary" href="#download">
+            <span id="download-label">Download latest</span>
+            <span id="download-version" class="btn__meta"></span>
+          </a>
+          <a class="btn btn--ghost" href="https://github.com/lolka213d/Rezinas-Music/releases" target="_blank" rel="noopener">
+            All releases
+          </a>
+        </div>
+        <p id="update-status" class="status" aria-live="polite">Checking for updates…</p>
+      </div>
+      <div class="hero__shot glass">
+        <img src="assets/01-main.png" alt="Rezinas Music main screen" width="640" height="400" />
+      </div>
+    </section>
+
+    <section id="download" class="download container">
+      <div class="glass panel">
+        <div class="panel__head">
+          <h2>Latest release</h2>
+          <span id="release-badge" class="badge">…</span>
+        </div>
+        <div id="release-notes" class="release-notes muted">Loading release notes from GitHub…</div>
+        <div class="panel__actions">
+          <a id="release-download" class="btn btn--primary" href="#" hidden>Download installer</a>
+          <a class="btn btn--outline" href="https://github.com/lolka213d/Rezinas-Music/blob/mine/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features container">
+      <h2>Features</h2>
+      <div class="grid">
+        <article class="glass card"><h3>My Wave</h3><p>Personal radio with daily refresh — something new every day.</p></article>
+        <article class="glass card"><h3>Playlists & library</h3><p>Import from PC, smart playlists, drag-and-drop queue.</p></article>
+        <article class="glass card"><h3>Lyrics</h3><p>Synced LRC overlay and in-app lyrics panel.</p></article>
+        <article class="glass card"><h3>Spotify sync</h3><p>Connect Spotify to import playlists and liked songs.</p></article>
+        <article class="glass card"><h3>Discord status</h3><p>Rich Presence with cover art when you listen.</p></article>
+        <article class="glass card"><h3>10 languages</h3><p>English, Russian, Ukrainian, and more in Settings.</p></article>
+      </div>
+    </section>
+
+    <section class="support container">
+      <div class="glass panel panel--center">
+        <h2>Support the project</h2>
+        <p class="muted">If you enjoy Rezinas Music, you can buy me a coffee.</p>
+        <div class="support-links">
+          <a class="btn btn--outline" href="https://www.paypal.com/ncp/payment/PMVP42DTMTBSL" target="_blank" rel="noopener">PayPal</a>
+          <a class="btn btn--outline" href="https://buymeacoffee.com/rezinas" target="_blank" rel="noopener">Buy Me a Coffee</a>
+          <a class="btn btn--outline" href="https://boosty.to/moonsfh" target="_blank" rel="noopener">Boosty</a>
+          <a class="btn btn--outline" href="https://www.patreon.com/rezinas" target="_blank" rel="noopener">Patreon</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span>© 2026 Rezinas Music</span>
+      <a href="https://github.com/lolka213d/Rezinas-Music" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/lolka213d/Rezinas-Music/releases" target="_blank" rel="noopener">Releases</a>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
