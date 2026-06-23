@@ -96,7 +96,7 @@ public partial class App : Application
         };
         window.Show();
         _ = favoriteLookup.RefreshAsync();
-        ChangelogService.ShowIfUpdated(settings, window);
+        ChangelogService.ShowIfUpdated(settings, window, loc);
         if (settings.Current.StartWithWindows)
             WindowsStartupService.SetEnabled(true);
         window.ContentRendered += (_, _) =>

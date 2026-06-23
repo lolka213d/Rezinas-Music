@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using Harmony.Helpers;
 using Harmony.Services.Interfaces;
+using Harmony.Views;
 using Harmony.Services.Localization;
 
 namespace Harmony.Services;
@@ -114,13 +115,22 @@ public sealed class UpdateCheckService
 
         var message = string.Format(_loc.T("update.availableBody"), result.Version, CurrentVersion) + notes;
 
-        var answer = MessageBox.Show(
-            message,
-            _loc.T("update.availableTitle"),
-            MessageBoxButton.YesNoCancel,
-            MessageBoxImage.Information);
+        var owner = Application.Current.MainWindow;
+        if (owner is not { IsVisible: true })
+            owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive);
 
-        if (answer == MessageBoxResult.Yes)
+        var choice = owner != null
+            ? AppDialog.ShowChoice(
+                owner,
+                _loc.T("update.availableTitle"),
+                message,
+                _loc.T("update.download"),
+                _loc.T("update.skip"),
+                _loc.T("update.later"),
+                $"v{result.Version}")
+            : AppDialogChoice.Cancel;
+
+        if (choice == AppDialogChoice.Primary)
         {
             try
             {
@@ -133,7 +143,7 @@ public sealed class UpdateCheckService
             return true;
         }
 
-        if (answer == MessageBoxResult.No)
+        if (choice == AppDialogChoice.Secondary)
         {
             var s = _settings.Current;
             s.SkippedUpdateVersion = result.Version;

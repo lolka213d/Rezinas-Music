@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.4
+
+- Lyrics: Spotify-style full-screen view — centered text, auto-scroll, top/bottom fade, ambient colors from album art
+- Playback: fixed wrong track starting when clicking a song in lists or album view
+- Library & Favorites: track row layout — duration and actions no longer overlap
+- Playlists: instant empty playlist create, rename, three-dots menu; play button always visible
+- Album view: fixed Back button overlapping Lyrics panel
+- What's new & update dialogs: dark glass UI instead of white system windows
+
 ## 1.2.3
 
 - Home: removed Quick access grid; featured and continue-listening no longer show two single-track rows at once

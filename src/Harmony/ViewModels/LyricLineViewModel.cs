@@ -16,4 +16,6 @@ public partial class LyricLineViewModel : ObservableObject
 
     [ObservableProperty] private bool _isActive;
     [ObservableProperty] private bool _isPast;
+    [ObservableProperty] private double _lineOpacity = 0.42;
+    [ObservableProperty] private double _fontSize = 28;
 }

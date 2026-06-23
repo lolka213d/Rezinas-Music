@@ -155,12 +155,13 @@
                                 <Grid Grid.Row="1" Margin="8,0,8,6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="40" />
+                                        <ColumnDefinition Width="44" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="52" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="1" Text="{Binding ColumnTitleLabel}"
+                                    <TextBlock Grid.Column="2" Text="{Binding ColumnTitleLabel}"
                                                Style="{StaticResource RzMeta}" FontWeight="SemiBold" />
-                                    <TextBlock Grid.Column="2" Text="{Binding ColumnTimeLabel}"
+                                    <TextBlock Grid.Column="3" Text="{Binding ColumnTimeLabel}"
                                                Style="{StaticResource RzMeta}" FontWeight="SemiBold" HorizontalAlignment="Right" />
                                 </Grid>
 
@@ -170,18 +171,12 @@
                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid>
-                                                <Grid.InputBindings>
-                                                    <MouseBinding Gesture="LeftClick"
-                                                                  Command="{Binding DataContext.PlayTrackCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                                                  CommandParameter="{Binding}" />
-                                                </Grid.InputBindings>
-                                                <cmp:TrackRow Track="{Binding}"
-                                                              ShowIndex="True"
-                                                              ShowPlayButton="False"
-                                                              CurrentTrack="{Binding DataContext.Player.CurrentTrack, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                                              Index="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=(ItemsControl.AlternationIndex), Converter={StaticResource TrackNumber}}" />
-                                            </Grid>
+                                            <cmp:TrackRow Track="{Binding}"
+                                                          ShowIndex="True"
+                                                          ShowPlayButton="False"
+                                                          CurrentTrack="{Binding DataContext.Player.CurrentTrack, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                          PlayCommand="{Binding DataContext.PlayTrackCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                          Index="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=(ItemsControl.AlternationIndex), Converter={StaticResource TrackNumber}}" />
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>

@@ -3,7 +3,7 @@
 
 #define MyAppName "Rezinas Music"
 #define MyAppExe "RezinasMusic.exe"
-#define MyAppVersion "1.2.3"
+#define MyAppVersion "1.2.4"
 #define MyAppPublisher "Rezinas"
 #define MyAppUrl "https://github.com/lolka213d/Rezinas-Music"
 

@@ -33,6 +33,7 @@
             <conv:TrackIsFavoriteConverter x:Key="TrackIsFavorite" />
             <conv:TrackCountLabelConverter x:Key="TrackCountLabel" />
             <conv:HexToBrushConverter x:Key="HexToBrush" />
+            <conv:HexToColorConverter x:Key="HexToColor" />
 
             <sys:String x:Key="NewPlaylistCardLabel" xmlns:sys="clr-namespace:System;assembly=mscorlib">New playlist</sys:String>
 

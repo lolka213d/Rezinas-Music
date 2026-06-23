@@ -118,6 +118,36 @@ public partial class CollectionsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task CreateEmptyPlaylist()
+    {
+        if (IsCreateDialogOpen) return;
+        IsCreateDialogOpen = true;
+        try
+        {
+            var pl = await _playlists.CreateAsync(NextDefaultPlaylistName());
+            await LoadPlaylistsAsync();
+            SelectedPlaylist = Playlists.FirstOrDefault(p => p.Id == pl.Id);
+            ShowAddPanel = true;
+        }
+        finally
+        {
+            IsCreateDialogOpen = false;
+        }
+    }
+
+    private string NextDefaultPlaylistName()
+    {
+        for (var index = Playlists.Count + 1; index < 500; index++)
+        {
+            var candidate = string.Format(_loc.T("collections.defaultPlaylistName"), index);
+            if (!Playlists.Any(p => string.Equals(p.Name, candidate, StringComparison.OrdinalIgnoreCase)))
+                return candidate;
+        }
+
+        return string.Format(_loc.T("collections.defaultPlaylistName"), Playlists.Count + 1);
+    }
+
+    [RelayCommand]
     private async Task OpenCreatePlaylistDialog()
     {
         if (IsCreateDialogOpen) return;
@@ -182,6 +212,7 @@ public partial class CollectionsViewModel : ObservableObject
     public bool HasAnyCollections => !IsListEmpty;
     public bool ShowEmptyDetail => !HasSelection;
     public bool ShowTrackListTools => HasSelection && Tracks.Count > 0;
+    public bool IsPlaylistDetailEmpty => ShowPlaylistDetail && Tracks.Count == 0;
     public bool ShowRichColumnHeaders => IsRichView && ShowTrackListTools;
     public string AlbumColumnLabel => _loc.T("collections.albumColumn");
     public bool ShowPlaylistDetail => IsPlaylistsMode && HasSelection;
@@ -212,6 +243,7 @@ public partial class CollectionsViewModel : ObservableObject
         OnPropertyChanged(nameof(ShowPlaylistDetail));
         OnPropertyChanged(nameof(ShowPlaylistBrowse));
         OnPropertyChanged(nameof(ShowEmptyDetail));
+        OnPropertyChanged(nameof(IsPlaylistDetailEmpty));
     }
 
     partial void OnSelectedKindChanged(CollectionKind value)
@@ -459,6 +491,7 @@ public partial class CollectionsViewModel : ObservableObject
         OnPropertyChanged(nameof(SelectionMetaLine));
         OnPropertyChanged(nameof(OwnerMetaLine));
         OnPropertyChanged(nameof(ShowTrackListTools));
+        OnPropertyChanged(nameof(IsPlaylistDetailEmpty));
         OnPropertyChanged(nameof(ShowRichColumnHeaders));
         await ApplyTrackFilterAsync();
     }

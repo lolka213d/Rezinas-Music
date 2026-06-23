@@ -72,12 +72,13 @@
                     <Grid Grid.Row="0" Margin="8,0,8,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="40" />
+                            <ColumnDefinition Width="44" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="52" />
-                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition Width="104" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="1" Text="{Binding ColumnTitleLabel}" Style="{StaticResource RzMeta}" FontWeight="SemiBold" />
-                        <TextBlock Grid.Column="2" Text="{Binding ColumnTimeLabel}" Style="{StaticResource RzMeta}" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                        <TextBlock Grid.Column="2" Text="{Binding ColumnTitleLabel}" Style="{StaticResource RzMeta}" FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="3" Text="{Binding ColumnTimeLabel}" Style="{StaticResource RzMeta}" FontWeight="SemiBold" HorizontalAlignment="Right" />
                     </Grid>
 
                     <ListBox Grid.Row="1" ItemsSource="{Binding Tracks}" Style="{StaticResource ActiveTrackListStyle}"
@@ -85,6 +86,7 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <cmp:TrackRow Track="{Binding}"
+                                              ShowPlayButton="False"
                                               PlayCommand="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                               LikeCommand="{Binding DataContext.UnlikeCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" />
                             </DataTemplate>

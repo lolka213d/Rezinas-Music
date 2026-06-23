@@ -55,6 +55,7 @@ public partial class AlbumDetailViewModel : ObservableObject
     private double _lyricSyncScale = 1.0;
     private bool _lyricsAreSynced;
     private double _lyricsMetadataDuration;
+    private bool _isShowingLiveQueue;
 
 
 
@@ -224,12 +225,13 @@ public partial class AlbumDetailViewModel : ObservableObject
 
 
             if (context.PreloadedTracks is { Count: > 0 } preloaded)
-
             {
-
                 var liveQueue = _player.AllQueue;
-
-                tracks = liveQueue.Count > 0 ? liveQueue.ToList() : preloaded;
+                _isShowingLiveQueue = liveQueue.Count > 0
+                                      && context.InitialTrack != null
+                                      && liveQueue.Any(t => t.Matches(context.InitialTrack))
+                                      && QueueContainsAll(liveQueue, preloaded);
+                tracks = _isShowingLiveQueue ? liveQueue.ToList() : preloaded.ToList();
 
                 IsTrackList = true;
 
@@ -248,6 +250,7 @@ public partial class AlbumDetailViewModel : ObservableObject
             else if (context.UserAlbumId is int userId)
 
             {
+                _isShowingLiveQueue = false;
 
                 tracks = await _albums.GetTracksAsync(userId);
 
@@ -258,6 +261,7 @@ public partial class AlbumDetailViewModel : ObservableObject
             else
 
             {
+                _isShowingLiveQueue = false;
 
                 if (string.IsNullOrWhiteSpace(deezerId))
 
@@ -680,9 +684,13 @@ public partial class AlbumDetailViewModel : ObservableObject
             Tracks.Add(track);
 
         HasTracks = Tracks.Count > 0;
+        _isShowingLiveQueue = true;
         var totalSec = Tracks.Sum(t => Math.Max(0, t.DurationSeconds));
         MetaLine = $"{Tracks.Count} songs · {FormatDuration(totalSec)}";
     }
+
+    private static bool QueueContainsAll(IReadOnlyList<Track> live, IReadOnlyList<Track> expected) =>
+        expected.All(p => live.Any(t => t.Matches(p)));
 
 
 
@@ -755,7 +763,7 @@ public partial class AlbumDetailViewModel : ObservableObject
 
         FocusedTrack = track;
 
-        if (IsTrackList && _player.AllQueue.Any(t => t.Matches(track)))
+        if (_isShowingLiveQueue && _player.AllQueue.Any(t => t.Matches(track)))
             return _player.JumpToQueueTrackAsync(track);
 
         return _player.PlayQueueAsync(Tracks, track);

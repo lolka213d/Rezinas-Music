@@ -7,48 +7,43 @@
              MinHeight="52">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="40" />
             <ColumnDefinition Width="44" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" MinWidth="120" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="52" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
 
-        <Button Grid.Column="0" Grid.ColumnSpan="7" Style="{StaticResource TrackRowHitButton}"
+        <Button x:Name="PlayHit" Grid.Column="0" Grid.ColumnSpan="5"
+                Style="{StaticResource TrackRowHitButton}"
                 Command="{Binding PlayCommand, ElementName=Root}"
-                CommandParameter="{Binding Track, ElementName=Root}"
+                CommandParameter="{Binding}"
                 Visibility="{Binding PlayCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}"
                 Panel.ZIndex="0" />
 
-        <Grid Grid.Column="0" Grid.ColumnSpan="7" Panel.ZIndex="1" IsHitTestVisible="False">
+        <Grid Grid.Column="0" Grid.ColumnSpan="5" Panel.ZIndex="1" IsHitTestVisible="False">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="40" />
                 <ColumnDefinition Width="44" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" MinWidth="120" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="52" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0" Width="32" VerticalAlignment="Center">
-                <Grid.Style>
-                    <Style TargetType="Grid">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding ShowIndex, ElementName=Root}" Value="True">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Grid.Style>
+            <Grid Grid.Column="0" Width="40" VerticalAlignment="Center">
                 <TextBlock FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock" BasedOn="{StaticResource RzMeta}">
                             <Setter Property="Text" Value="{Binding Index, ElementName=Root}" />
+                            <Setter Property="Visibility" Value="Collapsed" />
                             <Style.Triggers>
+                                <DataTrigger Binding="{Binding ShowIndex, ElementName=Root}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=PlayHit}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
                                 <DataTrigger Value="True">
                                     <DataTrigger.Binding>
                                         <MultiBinding Converter="{StaticResource IsSameTrack}">
@@ -58,20 +53,21 @@
                                     </DataTrigger.Binding>
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
                 <Path Data="{StaticResource IconPlay}" Width="14" Height="14"
                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                      Fill="{StaticResource AccentBrush}" Visibility="Collapsed">
+                      Fill="{StaticResource TextPrimaryBrush}" Opacity="0.7">
                     <Path.Style>
                         <Style TargetType="Path">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                <DataTrigger Binding="{Binding ShowIndex, ElementName=Root}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=PlayHit}" Value="True">
+                                    <Setter Property="Opacity" Value="1" />
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                                 <DataTrigger Value="True">
@@ -82,6 +78,8 @@
                                         </MultiBinding>
                                     </DataTrigger.Binding>
                                     <Setter Property="Data" Value="{StaticResource IconVolume}" />
+                                    <Setter Property="Fill" Value="{StaticResource AccentBrush}" />
+                                    <Setter Property="Opacity" Value="1" />
                                     <Setter Property="Visibility" Value="Visible" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -90,25 +88,7 @@
                 </Path>
             </Grid>
 
-            <Button Grid.Column="1" Width="32" Height="32" IsHitTestVisible="False"
-                    Command="{Binding PlayCommand, ElementName=Root}"
-                    CommandParameter="{Binding Track, ElementName=Root}">
-                <Button.Style>
-                    <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
-                        <Setter Property="Width" Value="32" />
-                        <Setter Property="Height" Value="32" />
-                        <Setter Property="Visibility" Value="Collapsed" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding ShowPlayButton, ElementName=Root}" Value="True">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-                <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPlay}" Width="14" Height="14" />
-            </Button>
-
-            <Border Grid.Column="2" Style="{StaticResource RzTrackCover}" Margin="0">
+            <Border Grid.Column="1" Style="{StaticResource RzTrackCover}" Margin="0">
                 <Grid>
                     <Path Data="{StaticResource IconNote}" Fill="{StaticResource TextMutedBrush}"
                           Stretch="Uniform" Width="16" Height="16" />
@@ -117,28 +97,33 @@
                 </Grid>
             </Border>
 
-            <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="10,0,8,0">
-                <TextBlock Text="{Binding Track.Title, ElementName=Root}" FontWeight="SemiBold" FontSize="13" />
-                <TextBlock Text="{Binding Track.ArtistName, ElementName=Root}" Style="{StaticResource RzMeta}" />
+            <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0,8,0">
+                <TextBlock Text="{Binding Track.Title, ElementName=Root}" FontWeight="SemiBold" FontSize="13"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding Track.ArtistName, ElementName=Root}" Style="{StaticResource RzMeta}"
+                           TextTrimming="CharacterEllipsis" />
             </StackPanel>
 
-            <TextBlock Grid.Column="4" Text="{Binding Track.AlbumName, ElementName=Root}" Style="{StaticResource RzMeta}"
-                       VerticalAlignment="Center" Width="120" Margin="0,0,8,0"
+            <TextBlock Grid.Column="3" Text="{Binding Track.AlbumName, ElementName=Root}" Style="{StaticResource RzMeta}"
+                       VerticalAlignment="Center" Width="120" Margin="0,0,8,0" TextTrimming="CharacterEllipsis"
                        Visibility="{Binding ShowAlbum, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
 
-            <TextBlock Grid.Column="4" Text="{Binding MetaText, ElementName=Root}" Style="{StaticResource RzMeta}"
+            <TextBlock Grid.Column="3" Text="{Binding MetaText, ElementName=Root}" Style="{StaticResource RzMeta}"
                        VerticalAlignment="Center" Width="120" Margin="0,0,8,0" HorizontalAlignment="Right"
+                       TextTrimming="CharacterEllipsis"
                        Visibility="{Binding ShowMeta, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
 
-            <TextBlock Grid.Column="5" Text="{Binding Track.DurationDisplay, ElementName=Root}" Style="{StaticResource RzMeta}"
-                       VerticalAlignment="Center" Width="48" HorizontalAlignment="Right" Margin="0,0,4,0"
+            <TextBlock Grid.Column="4" Text="{Binding Track.DurationDisplay, ElementName=Root}"
+                       Style="{StaticResource RzMeta}" FontSize="13"
+                       VerticalAlignment="Center" HorizontalAlignment="Right"
                        Visibility="{Binding ShowDuration, ElementName=Root, Converter={StaticResource BoolToVisibility}}" />
         </Grid>
 
-        <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Right" Panel.ZIndex="2">
+        <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right"
+                    VerticalAlignment="Center" Panel.ZIndex="2" Margin="4,0,0,0">
             <Button Style="{StaticResource IconButton}" Width="32" Height="32"
                     Command="{Binding PlaylistCommand, ElementName=Root}"
-                    CommandParameter="{Binding Track, ElementName=Root}"
+                    CommandParameter="{Binding}"
                     Visibility="{Binding PlaylistCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}">
                 <Path Style="{StaticResource IconPath}" Data="{StaticResource IconPlaylist}" Width="14" Height="14" />
             </Button>
@@ -147,7 +132,7 @@
                                  Visibility="{Binding LikeCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}" />
             <Button Style="{StaticResource IconButton}" Width="32" Height="32"
                     Command="{Binding RemoveCommand, ElementName=Root}"
-                    CommandParameter="{Binding Track, ElementName=Root}"
+                    CommandParameter="{Binding}"
                     Visibility="{Binding RemoveCommand, ElementName=Root, Converter={StaticResource NullToVisibility}}">
                 <Path Style="{StaticResource IconPath}" Data="{StaticResource IconDelete}" Width="14" Height="14" />
             </Button>

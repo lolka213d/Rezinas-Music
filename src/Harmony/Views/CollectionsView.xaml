@@ -28,14 +28,14 @@
                     <cmp:EmptyState Title="{Binding CreateFirstPlaylistTitle}"
                                     Description="{Binding CreateFirstPlaylistDesc}"
                                     ActionText="{Binding Loc.CommonCreate}"
-                                    ActionCommand="{Binding OpenCreatePlaylistDialogCommand}"
+                                    ActionCommand="{Binding CreateEmptyPlaylistCommand}"
                                     IconData="{StaticResource IconPlaylist}"
                                     HorizontalAlignment="Left" Margin="0,8,0,0"
                                     Visibility="{Binding IsPlaylistsEmpty, Converter={StaticResource BoolToVisibility}}" />
 
                     <WrapPanel Visibility="{Binding IsPlaylistsEmpty, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
                         <Button Style="{StaticResource RzNewPlaylistCard}"
-                                Command="{Binding OpenCreatePlaylistDialogCommand}" />
+                                Command="{Binding CreateEmptyPlaylistCommand}" />
                         <ItemsControl ItemsSource="{Binding PlaylistCards}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -120,7 +120,7 @@
                                            Foreground="{StaticResource TextPrimaryBrush}" Opacity="0.85" Margin="0,0,0,8" />
                                 <TextBox Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}"
                                          FontSize="58" FontWeight="Bold" Background="Transparent" BorderThickness="0"
-                                         Padding="0" Margin="0,0,0,12" />
+                                         Padding="0" Margin="0,0,0,12" LostFocus="EditName_LostFocus" />
                                 <TextBlock Text="{Binding OwnerMetaLine}" FontSize="14" Foreground="{StaticResource TextMutedBrush}" />
                             </StackPanel>
                         </Grid>
@@ -137,8 +137,20 @@
                                 <Path Data="{StaticResource IconAdd}" Fill="{StaticResource TextSecondaryBrush}"
                                       Stretch="Uniform" Width="16" Height="16" />
                             </Button>
-                            <Button Style="{StaticResource GhostButton}" Content="{Binding Loc.CommonDelete}"
-                                    Command="{Binding DeleteCommand}" Margin="8,0,0,0" Padding="14,10" />
+                            <Button Style="{StaticResource GhostButton}" Padding="12,10" Margin="4,0,0,0"
+                                    Click="OpenPlaylistMenu_Click">
+                                <Path Data="{StaticResource IconMore}" Fill="{StaticResource TextSecondaryBrush}"
+                                      Stretch="Uniform" Width="16" Height="16" />
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{Binding FindSongsTitle}"
+                                                  Command="{Binding ToggleAddPanelCommand}" />
+                                        <Separator />
+                                        <MenuItem Header="{Binding Loc.CommonDelete}"
+                                                  Command="{Binding DeleteCommand}" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
                         </StackPanel>
                         </StackPanel>
                     </Grid>
@@ -158,7 +170,8 @@
                             <ColumnDefinition Width="2.2*" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="120" />
-                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="48" />
+                            <ColumnDefinition Width="96" />
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="2" Text="{Binding SortTitleLabel}" Style="{StaticResource Muted}" FontSize="11" FontWeight="Bold" />
                         <TextBlock Grid.Column="3" Text="{Binding AlbumColumnLabel}" Style="{StaticResource Muted}" FontSize="11" FontWeight="Bold" />
@@ -167,7 +180,17 @@
                               Fill="{StaticResource TextMutedBrush}" Stretch="Uniform" Width="14" Height="14" HorizontalAlignment="Right" />
                     </Grid>
 
-                    <ItemsControl Grid.Row="1" ItemsSource="{Binding FilteredTrackRows}">
+                    <cmp:EmptyState Grid.Row="1" Margin="0,24"
+                                    Title="{Binding FindSongsTitle}"
+                                    Description="{Binding SearchAddPlaceholder}"
+                                    ActionText="{Binding SearchAddPlaceholder}"
+                                    ActionCommand="{Binding ToggleAddPanelCommand}"
+                                    IconData="{StaticResource IconPlaylist}"
+                                    HorizontalAlignment="Center"
+                                    Visibility="{Binding IsPlaylistDetailEmpty, Converter={StaticResource BoolToVisibility}}" />
+
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding FilteredTrackRows}"
+                                  Visibility="{Binding IsPlaylistDetailEmpty, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:CollectionTrackRow}">
                                 <Border x:Name="RowBorder" MinHeight="52" Margin="0,1" CornerRadius="6"
@@ -188,10 +211,12 @@
                                             <ColumnDefinition Width="2.2*" />
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="48" />
+                                            <ColumnDefinition Width="96" />
                                         </Grid.ColumnDefinitions>
 
-                                        <Button Grid.Column="0" Grid.ColumnSpan="6" Style="{StaticResource TrackRowHitButton}"
+                                        <Button x:Name="PlayHit" Grid.Column="0" Grid.ColumnSpan="6"
+                                                Style="{StaticResource TrackRowHitButton}"
                                                 Command="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding Track}" />
 
@@ -202,50 +227,22 @@
                                                 <ColumnDefinition Width="2.2*" />
                                                 <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="100" />
+                                                <ColumnDefinition Width="48" />
                                             </Grid.ColumnDefinitions>
 
                                             <Grid Grid.Column="0" Width="40" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Index}" FontSize="13"
-                                                           VerticalAlignment="Center" HorizontalAlignment="Center">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource Muted}">
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                </DataTrigger>
-                                                                <DataTrigger Value="True">
-                                                                    <DataTrigger.Binding>
-                                                                        <MultiBinding Converter="{StaticResource IsSameTrack}">
-                                                                            <Binding Path="Track" />
-                                                                            <Binding Path="DataContext.Player.CurrentTrack, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                                                        </MultiBinding>
-                                                                    </DataTrigger.Binding>
-                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
+                                                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                           Visibility="Collapsed" />
                                                 <Path Data="{StaticResource IconPlay}" Stretch="Uniform" Width="14" Height="14"
                                                       Fill="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center" Visibility="Collapsed">
+                                                      VerticalAlignment="Center" Opacity="0.65">
                                                     <Path.Style>
                                                         <Style TargetType="Path">
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=PlayHit}" Value="True">
+                                                                    <Setter Property="Opacity" Value="1" />
                                                                 </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Path.Style>
-                                                </Path>
-                                                <Path Data="{StaticResource IconVolume}" Stretch="Uniform" Width="14" Height="14"
-                                                      Fill="{StaticResource AccentBrush}" HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center" Visibility="Collapsed">
-                                                    <Path.Style>
-                                                        <Style TargetType="Path">
-                                                            <Style.Triggers>
                                                                 <DataTrigger Value="True">
                                                                     <DataTrigger.Binding>
                                                                         <MultiBinding Converter="{StaticResource IsSameTrack}">
@@ -253,7 +250,9 @@
                                                                             <Binding Path="DataContext.Player.CurrentTrack, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                                                         </MultiBinding>
                                                                     </DataTrigger.Binding>
-                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Setter Property="Data" Value="{StaticResource IconVolume}" />
+                                                                    <Setter Property="Fill" Value="{StaticResource AccentBrush}" />
+                                                                    <Setter Property="Opacity" Value="1" />
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -271,7 +270,7 @@
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True">
+                                                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=PlayHit}" Value="True">
                                                                         <Setter Property="Visibility" Value="Visible" />
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
@@ -299,59 +298,41 @@
                                                        Style="{StaticResource Muted}" FontSize="13" VerticalAlignment="Center"
                                                        TextTrimming="CharacterEllipsis" />
 
-                                            <Grid Grid.Column="5" Width="120" HorizontalAlignment="Right"
-                                                  VerticalAlignment="Center" Margin="0,0,4,0">
-                                                <TextBlock Text="{Binding Track.DurationDisplay}"
-                                                           FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource Muted}">
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
-                                                            VerticalAlignment="Center" Visibility="Collapsed">
-                                                    <StackPanel.Style>
-                                                        <Style TargetType="StackPanel">
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsMouseOver, ElementName=RowBorder}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Visible" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </StackPanel.Style>
-                                                    <Button Style="{StaticResource IconButton}" Width="32" Height="32" Margin="0,0,4,0"
-                                                            Command="{Binding DataContext.RemoveTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            CommandParameter="{Binding Track}"
-                                                            ToolTip="{Binding DataContext.RemoveFromPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}">
-                                                        <Path Data="{StaticResource IconDelete}" Fill="{StaticResource TextSecondaryBrush}"
-                                                              Stretch="Uniform" Width="18" Height="18" />
-                                                    </Button>
-                                                    <Button Style="{StaticResource IconButton}" Width="32" Height="32" Margin="0,0,4,0"
-                                                            Command="{Binding DataContext.AddTrackElsewhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            CommandParameter="{Binding Track}" ToolTip="{Binding DataContext.AddToPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}">
-                                                        <Path Data="{StaticResource IconAdd}" Fill="{StaticResource TextSecondaryBrush}"
-                                                              Stretch="Uniform" Width="18" Height="18" />
-                                                    </Button>
-                                                    <Button Style="{StaticResource IconButton}" Width="32" Height="32"
-                                                            Click="OpenTrackMenu_Click">
-                                                        <Path Data="{StaticResource IconMore}" Fill="{StaticResource TextSecondaryBrush}"
-                                                              Stretch="Uniform" Width="18" Height="18" />
-                                                        <Button.ContextMenu>
-                                                            <ContextMenu>
-                                                                <MenuItem Header="{Binding DataContext.RemoveFromPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                          Command="{Binding DataContext.RemoveTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                          CommandParameter="{Binding Track}" />
-                                                            </ContextMenu>
-                                                        </Button.ContextMenu>
-                                                    </Button>
-                                                </StackPanel>
-                                            </Grid>
+                                            <TextBlock Grid.Column="5" Text="{Binding Track.DurationDisplay}"
+                                                       Style="{StaticResource Muted}" FontSize="13"
+                                                       VerticalAlignment="Center" HorizontalAlignment="Right" />
                                         </Grid>
+
+                                        <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Right"
+                                                    VerticalAlignment="Center" Panel.ZIndex="2">
+                                            <Button Style="{StaticResource IconButton}" Width="32" Height="32" Margin="0,0,2,0"
+                                                    Command="{Binding DataContext.RemoveTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding Track}"
+                                                    ToolTip="{Binding DataContext.RemoveFromPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                <Path Data="{StaticResource IconDelete}" Fill="{StaticResource TextSecondaryBrush}"
+                                                      Stretch="Uniform" Width="16" Height="16" />
+                                            </Button>
+                                            <Button Style="{StaticResource IconButton}" Width="32" Height="32" Margin="0,0,2,0"
+                                                    Command="{Binding DataContext.AddTrackElsewhereCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding Track}"
+                                                    ToolTip="{Binding DataContext.AddToPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                <Path Data="{StaticResource IconAdd}" Fill="{StaticResource TextSecondaryBrush}"
+                                                      Stretch="Uniform" Width="16" Height="16" />
+                                            </Button>
+                                            <Button Style="{StaticResource IconButton}" Width="32" Height="32"
+                                                    Click="OpenTrackMenu_Click"
+                                                    ToolTip="{Binding DataContext.RemoveFromPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                <Path Data="{StaticResource IconMore}" Fill="{StaticResource TextSecondaryBrush}"
+                                                      Stretch="Uniform" Width="16" Height="16" />
+                                                <Button.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="{Binding DataContext.RemoveFromPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                  Command="{Binding DataContext.RemoveTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                  CommandParameter="{Binding Track}" />
+                                                    </ContextMenu>
+                                                </Button.ContextMenu>
+                                            </Button>
+                                        </StackPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

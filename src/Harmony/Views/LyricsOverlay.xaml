@@ -1,78 +1,144 @@
 <UserControl x:Class="Harmony.Views.LyricsOverlay"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:Harmony.ViewModels">
-    <Border Background="#FF0A0A0A" Visibility="{Binding IsOpen, Converter={StaticResource BoolToVisibility}}">
-        <Grid Margin="32,24">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,16">
-                <StackPanel>
-                    <TextBlock Text="{Binding DataContext.Player.CurrentTrack.Title, RelativeSource={RelativeSource AncestorType=Window}}"
-                               FontSize="14" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding DataContext.Player.CurrentTrack.ArtistName, RelativeSource={RelativeSource AncestorType=Window}}"
-                               Style="{StaticResource Subtle}" FontSize="12" />
-                </StackPanel>
-                <Button Style="{StaticResource IconButton}" HorizontalAlignment="Right" VerticalAlignment="Top"
-                        ToolTip="{Binding CloseTooltip}" Command="{Binding CloseCommand}">
-                    <Path Style="{StaticResource IconPath}" Width="16" Height="16" Data="{StaticResource IconClose}" />
-                </Button>
+             xmlns:vm="clr-namespace:Harmony.ViewModels"
+             x:Name="Root"
+             Loaded="OnLoaded"
+             SizeChanged="OnSizeChanged">
+    <Border Visibility="{Binding IsOpen, Converter={StaticResource BoolToVisibility}}"
+            Background="{Binding BackgroundColor, Converter={StaticResource HexToBrush}}">
+        <Grid ClipToBounds="True">
+            <!-- Ambient side glow -->
+            <Grid IsHitTestVisible="False">
+                <Ellipse x:Name="LeftOrb" Width="520" Height="520" HorizontalAlignment="Left" VerticalAlignment="Center"
+                         Margin="-220,0,0,0" RenderTransformOrigin="0.5,0.5" Opacity="0.9">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="{Binding AccentLeftColor, Converter={StaticResource HexToColor}}" Offset="0" />
+                            <GradientStop Color="#00000000" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                    <Ellipse.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="LeftOrbScale" ScaleX="1" ScaleY="1" />
+                            <TranslateTransform x:Name="LeftOrbShift" X="0" Y="0" />
+                        </TransformGroup>
+                    </Ellipse.RenderTransform>
+                </Ellipse>
+                <Ellipse x:Name="RightOrb" Width="480" Height="480" HorizontalAlignment="Right" VerticalAlignment="Center"
+                         Margin="0,0,-200,0" RenderTransformOrigin="0.5,0.5" Opacity="0.85">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="{Binding AccentRightColor, Converter={StaticResource HexToColor}}" Offset="0" />
+                            <GradientStop Color="#00000000" Offset="1" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                    <Ellipse.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="RightOrbScale" ScaleX="1" ScaleY="1" />
+                            <TranslateTransform x:Name="RightOrbShift" X="0" Y="0" />
+                        </TransformGroup>
+                    </Ellipse.RenderTransform>
+                </Ellipse>
             </Grid>
 
-            <TextBlock Grid.Row="1" Text="{Binding LoadingLabel}" Style="{StaticResource Subtle}"
-                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+            <Grid Margin="32,24">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="1" Text="{Binding StatusMessage}" Style="{StaticResource Subtle}"
-                       VerticalAlignment="Center" HorizontalAlignment="Center" TextWrapping="Wrap"
-                       Visibility="{Binding ShowEmptyMessage, Converter={StaticResource BoolToVisibility}}" />
+                <Grid Grid.Row="0" Margin="0,0,0,12">
+                    <StackPanel HorizontalAlignment="Center" TextBlock.TextAlignment="Center">
+                        <TextBlock Text="{Binding DataContext.Player.CurrentTrack.Title, RelativeSource={RelativeSource AncestorType=Window}}"
+                                   FontSize="15" FontWeight="SemiBold" TextAlignment="Center" />
+                        <TextBlock Text="{Binding DataContext.Player.CurrentTrack.ArtistName, RelativeSource={RelativeSource AncestorType=Window}}"
+                                   FontSize="12" TextAlignment="Center" Opacity="0.72" Margin="0,2,0,0" />
+                    </StackPanel>
+                    <Button Style="{StaticResource IconButton}" HorizontalAlignment="Right" VerticalAlignment="Top"
+                            ToolTip="{Binding CloseTooltip}" Command="{Binding CloseCommand}">
+                        <Path Style="{StaticResource IconPath}" Width="16" Height="16" Data="{StaticResource IconClose}" />
+                    </Button>
+                </Grid>
 
-            <ListBox x:Name="LyricsList" Grid.Row="1"
-                     ItemsSource="{Binding Lines}"
-                     Background="Transparent" BorderThickness="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     ScrollViewer.CanContentScroll="False">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        <Setter Property="Padding" Value="0,10" />
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListBoxItem">
-                                    <ContentPresenter />
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-                <ListBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type vm:LyricLineViewModel}">
-                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap" TextAlignment="Left"
-                                   FontSize="32" FontWeight="Bold" LineHeight="42">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Foreground" Value="#FF5A5A5A" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsPast}" Value="True">
-                                            <Setter Property="Foreground" Value="#FF6A6A6A" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                            <Setter Property="Foreground" Value="White" />
-                                            <Setter Property="TextDecorations" Value="Underline" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                <TextBlock Grid.Row="1" Text="{Binding LoadingLabel}" Style="{StaticResource Subtle}"
+                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                           Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
+
+                <TextBlock Grid.Row="1" Text="{Binding StatusMessage}" Style="{StaticResource Subtle}"
+                           VerticalAlignment="Center" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
+                           Visibility="{Binding ShowEmptyMessage, Converter={StaticResource BoolToVisibility}}" />
+
+                <Grid Grid.Row="1">
+                    <ListBox x:Name="LyricsList"
+                             ItemsSource="{Binding Lines}"
+                             Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                             ScrollViewer.CanContentScroll="False"
+                             HorizontalContentAlignment="Center">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                <Setter Property="Padding" Value="0,8" />
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter HorizontalAlignment="Center" />
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:LyricLineViewModel}">
+                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap" TextAlignment="Center"
+                                           MaxWidth="720" FontWeight="Bold" LineHeight="44"
+                                           FontSize="{Binding FontSize}"
+                                           Opacity="{Binding LineOpacity}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground"
+                                                    Value="{Binding DataContext.InactiveTextColor, ElementName=Root, Converter={StaticResource HexToBrush}}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPast}" Value="True">
+                                                    <Setter Property="Foreground"
+                                                            Value="{Binding DataContext.PastTextColor, ElementName=Root, Converter={StaticResource HexToBrush}}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                    <Setter Property="Foreground"
+                                                            Value="{Binding DataContext.ActiveTextColor, ElementName=Root, Converter={StaticResource HexToBrush}}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- Top fade (past lines disappear like Spotify) -->
+                    <Border VerticalAlignment="Top" Height="140" IsHitTestVisible="False">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="{Binding BackgroundColor, Converter={StaticResource HexToColor}}" Offset="0" />
+                                <GradientStop Color="#00000000" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+
+                    <!-- Bottom fade -->
+                    <Border VerticalAlignment="Bottom" Height="100" IsHitTestVisible="False">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                                <GradientStop Color="{Binding BackgroundColor, Converter={StaticResource HexToColor}}" Offset="0" />
+                                <GradientStop Color="#00000000" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                </Grid>
+            </Grid>
         </Grid>
     </Border>
 </UserControl>

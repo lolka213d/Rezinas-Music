@@ -139,6 +139,8 @@ public partial class PlayerViewModel : ObservableObject
 
         _pendingSeekSeconds = 0;
         Interlocked.Increment(ref _playSession);
+        _player.Stop();
+        IsPlaying = false;
         _queue.Clear();
         _queue.AddRange(tracks.Where(t => t != null)!);
         if (_queue.Count == 0)
@@ -147,8 +149,7 @@ public partial class PlayerViewModel : ObservableObject
         }
         _savedOrder = _queue.ToList();
 
-        _index = _queue.FindIndex(t =>
-            t != null && t.Source == start.Source && t.SourceId == start.SourceId);
+        _index = FindTrackIndex(_queue, start);
         if (_index < 0)
         {
             _queue.Insert(0, start);
@@ -170,11 +171,13 @@ public partial class PlayerViewModel : ObservableObject
     public Task JumpToQueueTrackAsync(Track track)
     {
         if (track == null) return Task.CompletedTask;
-        var idx = _queue.FindIndex(t => t != null && t.Matches(track));
+        var idx = FindTrackIndex(_queue, track);
         if (idx < 0)
             return PlayQueueAsync(new[] { track }, track);
 
         Interlocked.Increment(ref _playSession);
+        _player.Stop();
+        IsPlaying = false;
         _index = idx;
         return PlayCurrentAsync();
     }
@@ -256,12 +259,10 @@ public partial class PlayerViewModel : ObservableObject
     private void RemoveFromQueue(Track track)
     {
         if (track == null) return;
-        var idx = _queue.FindIndex(t =>
-            t != null && t.Source == track.Source && t.SourceId == track.SourceId);
+        var idx = FindTrackIndex(_queue, track);
         if (idx < 0) return;
         _queue.RemoveAt(idx);
-        _savedOrder.RemoveAll(t =>
-            t != null && t.Source == track.Source && t.SourceId == track.SourceId);
+        _savedOrder.RemoveAll(t => t != null && track.Matches(t));
         if (idx < _index) _index--;
         else if (idx == _index && _index >= _queue.Count)
             _index = Math.Max(0, _queue.Count - 1);
@@ -274,8 +275,9 @@ public partial class PlayerViewModel : ObservableObject
     {
         Interlocked.Increment(ref _playSession);
         if (track == null) return;
-        _index = _queue.FindIndex(t =>
-            t != null && t.Source == track.Source && t.SourceId == track.SourceId);
+        _player.Stop();
+        IsPlaying = false;
+        _index = FindTrackIndex(_queue, track);
         if (_index >= 0)
             await PlayCurrentAsync();
     }
@@ -411,6 +413,25 @@ public partial class PlayerViewModel : ObservableObject
         }
     }
 
+    /// <summary>Prefer the exact row instance the user clicked, then fall back to source id.</summary>
+    private static int FindTrackIndex(IReadOnlyList<Track> queue, Track start)
+    {
+        for (var i = 0; i < queue.Count; i++)
+        {
+            if (ReferenceEquals(queue[i], start))
+                return i;
+        }
+
+        for (var i = 0; i < queue.Count; i++)
+        {
+            var t = queue[i];
+            if (t != null && t.Matches(start))
+                return i;
+        }
+
+        return -1;
+    }
+
     private static Track CloneTrack(Track t) => new()
     {
         Id = t.Id,
@@ -511,7 +532,7 @@ public partial class PlayerViewModel : ObservableObject
         _queue.Clear();
         _queue.AddRange(_savedOrder);
         if (current != null)
-            _index = _queue.FindIndex(t => t.Source == current.Source && t.SourceId == current.SourceId);
+            _index = FindTrackIndex(_queue, current);
     }
 
     [RelayCommand]

@@ -172,3 +172,24 @@ public sealed class HexToBrushConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
+/// <summary>#AARRGGBB or #RRGGBB hex string to Color (for gradients).</summary>
+public sealed class HexToColorConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not string hex || string.IsNullOrWhiteSpace(hex))
+            return System.Windows.Media.Colors.Transparent;
+        try
+        {
+            return (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex)!;
+        }
+        catch
+        {
+            return System.Windows.Media.Colors.Transparent;
+        }
+    }
+
+    public object ConvertBack(object value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

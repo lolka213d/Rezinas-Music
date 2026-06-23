@@ -24,14 +24,14 @@
             </Grid.RowDefinitions>
 
             <Button Grid.Row="0" Style="{StaticResource OutlineButton}" HorizontalAlignment="Left"
-                    Command="{Binding GoBackCommand}" Padding="14,6" Margin="0,0,0,16" Opacity="0" x:Name="BackButton">
+                    Command="{Binding GoBackCommand}" Padding="14,6" Margin="0,0,0,24" Opacity="0" x:Name="BackButton">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="← " />
                     <TextBlock Text="{Binding Loc.CommonBack}" />
                 </StackPanel>
             </Button>
 
-            <Grid Grid.Row="1" x:Name="MainContent" Opacity="0">
+            <Grid Grid.Row="1" x:Name="MainContent" Opacity="0" Margin="0,4,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*" MinWidth="240" MaxWidth="380" />
                     <ColumnDefinition Width="1.15*" MinWidth="280" />
@@ -39,14 +39,14 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Left: lyrics -->
-                <Border Grid.Column="0" Style="{StaticResource GlassPanel}" Padding="14" Margin="0,0,12,0"
+                <Border Grid.Column="0" Style="{StaticResource GlassPanel}" Padding="14,16,14,14" Margin="0,0,12,0"
                         BorderBrush="#18FFFFFF" BorderThickness="1">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <TextBlock Text="{Binding LyricsTitle}" FontWeight="Bold" FontSize="16" Margin="0,0,0,12" />
+                        <TextBlock Text="{Binding LyricsTitle}" FontWeight="Bold" FontSize="16" Margin="0,0,0,14" />
                         <TextBlock Grid.Row="1" Text="{Binding Loc.CommonLoading}" Style="{StaticResource Muted}"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"
                                    Visibility="{Binding IsLyricsLoading, Converter={StaticResource BoolToVisibility}}" />

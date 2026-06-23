@@ -90,6 +90,7 @@ public partial class MainViewModel : ObservableObject
 
     public string SplashTitle => AppBranding.Name;
     public string SplashSubtitle => _loc.T("common.loading");
+    public string SplashVersion => $"v{UpdateCheckService.CurrentVersion}";
 
     public async Task StartInitialLoadAsync()
     {

@@ -17,7 +17,7 @@ public partial class AlbumDetailView
         DataContextChanged += OnDataContextChanged;
     }
 
-    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    private void OnDataContextChanged(object? sender, DependencyPropertyChangedEventArgs e)
     {
         if (_vm != null)
             _vm.ActiveLyricLineChanged -= OnActiveLyricLineChanged;
@@ -32,8 +32,12 @@ public partial class AlbumDetailView
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        BackButton.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        });
+
         var fade = (Storyboard)FindResource("FadeSlideInFast");
-        fade.Begin(BackButton);
         fade.Begin(MainContent);
     }
 }
