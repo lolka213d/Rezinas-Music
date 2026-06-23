@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.10
+
+- Playback: pick best YouTube match (artist + title + closest duration), not first random result; rejects 3:26 when track is 2:38
+- Playback: relaxed fallback for obscure tracks (e.g. no artist on YouTube) — full title match + wider duration window
+
 ## 1.2.9
 
 - Playback: restored reliable YouTube resolver from 1.2.3 era (first good match + normal duration tolerance)
