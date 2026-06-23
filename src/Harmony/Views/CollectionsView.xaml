@@ -1,4 +1,5 @@
 <UserControl x:Class="Harmony.Views.CollectionsView"
+             x:Name="CollectionsRoot"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:Harmony.ViewModels"
@@ -141,15 +142,6 @@
                                     Click="OpenPlaylistMenu_Click">
                                 <Path Data="{StaticResource IconMore}" Fill="{StaticResource TextSecondaryBrush}"
                                       Stretch="Uniform" Width="16" Height="16" />
-                                <Button.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="{Binding FindSongsTitle}"
-                                                  Command="{Binding ToggleAddPanelCommand}" />
-                                        <Separator />
-                                        <MenuItem Header="{Binding Loc.CommonDelete}"
-                                                  Command="{Binding DeleteCommand}" />
-                                    </ContextMenu>
-                                </Button.ContextMenu>
                             </Button>
                         </StackPanel>
                         </StackPanel>
@@ -321,16 +313,9 @@
                                             </Button>
                                             <Button Style="{StaticResource IconButton}" Width="32" Height="32"
                                                     Click="OpenTrackMenu_Click"
-                                                    ToolTip="{Binding DataContext.RemoveFromPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                                    ToolTip="{Binding DataContext.MoreActionsTip, ElementName=CollectionsRoot}">
                                                 <Path Data="{StaticResource IconMore}" Fill="{StaticResource TextSecondaryBrush}"
                                                       Stretch="Uniform" Width="16" Height="16" />
-                                                <Button.ContextMenu>
-                                                    <ContextMenu>
-                                                        <MenuItem Header="{Binding DataContext.RemoveFromPlaylistTip, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                  Command="{Binding DataContext.RemoveTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                  CommandParameter="{Binding Track}" />
-                                                    </ContextMenu>
-                                                </Button.ContextMenu>
                                             </Button>
                                         </StackPanel>
                                     </Grid>

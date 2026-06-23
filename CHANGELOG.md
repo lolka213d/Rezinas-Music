@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.5
+
+- Playback: stricter YouTube match (title/artist/duration), Deezer metadata refresh and preview fallback — fixes wrong song audio
+- History: crash fix when playing from history; no stray play arrows in list
+- Playlists: dark «Add to playlist» dialog; ⋯ menu works; «Find songs» panel no longer opens on its own
+- Confirm dialogs: dark themed for delete/clear actions (albums, playlists, favorites, create playlist)
+
 ## 1.2.4
 
 - Lyrics: Spotify-style full-screen view — centered text, auto-scroll, top/bottom fade, ambient colors from album art

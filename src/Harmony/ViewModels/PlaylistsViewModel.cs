@@ -2,8 +2,8 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Harmony.Helpers;
 using Harmony.Models;
+using Harmony.Views;
 using Harmony.Services.Interfaces;
 using Harmony.Services.Localization;
 
@@ -79,8 +79,9 @@ public partial class PlaylistsViewModel : ObservableObject
     private async Task Delete()
     {
         if (SelectedPlaylist == null) return;
-        if (MessageBox.Show($"Delete playlist «{SelectedPlaylist.Name}»?", AppBranding.Name,
-                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        var owner = Application.Current.MainWindow as Window;
+        if (owner != null && !DarkConfirmDialog.Ask(owner,
+                string.Format(_loc.T("collections.deletePlaylistConfirm"), SelectedPlaylist.Name)))
             return;
         await _playlists.DeleteAsync(SelectedPlaylist.Id);
         await LoadAsync();

@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Harmony.Helpers;
+using Harmony.Services.Localization;
 
 namespace Harmony.Views;
 
@@ -51,9 +52,10 @@ public sealed class DarkConfirmDialog : Window
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
+        var loc = LocalizationService.Instance;
         var no = new Button
         {
-            Content = "Нет",
+            Content = loc.T("common.no"),
             Style = (Style)Application.Current.FindResource("OutlineButton"),
             Padding = new Thickness(18, 8, 18, 8),
             Margin = new Thickness(0, 0, 8, 0),
@@ -62,7 +64,7 @@ public sealed class DarkConfirmDialog : Window
         no.Click += (_, _) => { DialogResult = false; Close(); };
         var yes = new Button
         {
-            Content = "Да",
+            Content = loc.T("common.yes"),
             Style = (Style)Application.Current.FindResource("PillButton"),
             Padding = new Thickness(20, 8, 20, 8),
             IsDefault = true

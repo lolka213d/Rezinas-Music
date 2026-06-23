@@ -7,4 +7,7 @@ namespace Harmony.Services.Interfaces;
 public interface IStreamResolverService
 {
     Task<string?> ResolveFullStreamAsync(Models.Track track, CancellationToken cancellationToken = default);
+
+    /// <summary>Clears in-memory stream cache so the next resolve is fresh.</summary>
+    void InvalidateCachedStream(Models.Track track);
 }

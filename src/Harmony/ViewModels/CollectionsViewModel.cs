@@ -127,7 +127,6 @@ public partial class CollectionsViewModel : ObservableObject
             var pl = await _playlists.CreateAsync(NextDefaultPlaylistName());
             await LoadPlaylistsAsync();
             SelectedPlaylist = Playlists.FirstOrDefault(p => p.Id == pl.Id);
-            ShowAddPanel = true;
         }
         finally
         {
@@ -204,6 +203,7 @@ public partial class CollectionsViewModel : ObservableObject
     public string AddLabel => _loc.T("common.add");
     public string AddToPlaylistTip => _loc.T("tip.addPlaylist");
     public string RemoveFromPlaylistTip => _loc.T("tip.removePlaylist");
+    public string MoreActionsTip => _loc.T("tip.moreActions");
     public string EmptyListHint => IsAlbumsMode ? _loc.T("collections.emptyAlbums") : _loc.T("collections.emptyPlaylists");
     public string EmptyDetailTitle => IsAlbumsMode ? _loc.T("collections.pickAlbum") : _loc.T("collections.pickPlaylist");
     public string EmptyDetailHint => _loc.T("collections.pickHint");
@@ -690,7 +690,6 @@ public partial class CollectionsViewModel : ObservableObject
 
         if (_player.CurrentTrack == null)
         {
-            ShowAddPanel = true;
             StatusMessage = _loc.T("collections.nothingPlaying");
             return;
         }

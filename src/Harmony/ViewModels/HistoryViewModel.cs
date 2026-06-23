@@ -98,7 +98,7 @@ public partial class HistoryViewModel : ObservableObject
     private async Task Play(Track? track)
     {
         if (track == null) return;
-        var tracks = Items.Select(i => i.Track).ToList();
+        var tracks = _allItems.Select(i => i.Track).ToList();
         await _player.PlayQueueAsync(tracks, track);
     }
 

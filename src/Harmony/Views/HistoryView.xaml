@@ -51,9 +51,11 @@
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
                                             <cmp:TrackRow Track="{Binding Track}"
-                                                          CommandParameter="{Binding}"
+                                                          ShowPlayButton="False"
                                                           MetaText="{Binding PlayedAt, StringFormat='{}{0:dd MMM, HH:mm}'}"
                                                           ShowMeta="True"
+                                                          ShowDuration="True"
+                                                          CurrentTrack="{Binding DataContext.Player.CurrentTrack, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                           PlayCommand="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
@@ -66,3 +68,4 @@
         </StackPanel>
     </ScrollViewer>
 </UserControl>
+

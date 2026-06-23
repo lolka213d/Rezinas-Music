@@ -300,6 +300,10 @@ public partial class PlayerViewModel : ObservableObject
         try
         {
             _log.Info($"Play requested: {source.ArtistName} — {source.Title}");
+            _streams.InvalidateCachedStream(source);
+            if (source.Source is not MusicSource.Local and not MusicSource.SoundCloud)
+                source.StreamUrl = null;
+
             var streamUrl = await _streams.ResolveFullStreamAsync(source);
             if (session != Volatile.Read(ref _playSession)) return;
 
@@ -312,6 +316,8 @@ public partial class PlayerViewModel : ObservableObject
 
             source.StreamUrl = streamUrl;
             _queue[_index].StreamUrl = streamUrl;
+            if (source.DurationSeconds > 0)
+                DurationSeconds = source.DurationSeconds;
 
             if (streamUrl.Contains("preview", StringComparison.OrdinalIgnoreCase))
                 StatusMessage = $"Preview only (30s) for «{source.Title}»";
@@ -331,6 +337,15 @@ public partial class PlayerViewModel : ObservableObject
             var crossfade = EffectiveCrossfadeMs();
             await _player.PlayAsync(track, crossfade);
             if (session != Volatile.Read(ref _playSession)) return;
+
+            if (_player.Duration.TotalSeconds > 1)
+            {
+                DurationSeconds = _player.Duration.TotalSeconds;
+                source.DurationSeconds = (int)Math.Round(_player.Duration.TotalSeconds);
+                track.DurationSeconds = source.DurationSeconds;
+                CurrentTrack = CloneTrack(track);
+                OnPropertyChanged(nameof(HasTrack));
+            }
 
             if (restoreSeek > 0.5)
             {
@@ -393,9 +408,14 @@ public partial class PlayerViewModel : ObservableObject
 
     private void PrefetchStream(Track track)
     {
+        var session = Volatile.Read(ref _playSession);
         _ = Task.Run(async () =>
         {
-            try { await _streams.ResolveFullStreamAsync(track); }
+            try
+            {
+                if (session != Volatile.Read(ref _playSession)) return;
+                await _streams.ResolveFullStreamAsync(track);
+            }
             catch { /* prefetch is best-effort */ }
         });
     }

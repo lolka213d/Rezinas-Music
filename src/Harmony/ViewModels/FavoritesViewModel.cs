@@ -2,8 +2,8 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Harmony.Helpers;
 using Harmony.Models;
+using Harmony.Views;
 using Harmony.Services;
 using Harmony.Services.Interfaces;
 using Harmony.Services.Localization;
@@ -112,12 +112,9 @@ public partial class FavoritesViewModel : ObservableObject
     private async Task ClearAll()
     {
         if (Tracks.Count == 0) return;
-        var confirm = MessageBox.Show(
-            _loc.T("favorites.clearAllConfirm"),
-            AppBranding.Name,
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
-        if (confirm != MessageBoxResult.Yes) return;
+        var owner = Application.Current.MainWindow as Window;
+        if (owner == null || !DarkConfirmDialog.Ask(owner, _loc.T("favorites.clearAllConfirm")))
+            return;
 
         await _favorites.ClearAllAsync();
         await LoadAsync();

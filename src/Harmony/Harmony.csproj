@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <RootNamespace>Harmony</RootNamespace>
-    <Version>1.2.4</Version>
+    <Version>1.2.5</Version>
     <AssemblyName>RezinasMusic</AssemblyName>
     <Product>Rezinas Music</Product>
     <AssemblyTitle>Rezinas Music</AssemblyTitle>

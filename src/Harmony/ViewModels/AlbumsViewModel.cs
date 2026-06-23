@@ -2,8 +2,8 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Harmony.Helpers;
 using Harmony.Models;
+using Harmony.Views;
 using Harmony.Services;
 using Harmony.Services.Interfaces;
 using Harmony.Services.Localization;
@@ -93,8 +93,9 @@ public partial class AlbumsViewModel : ObservableObject
     private async Task Delete()
     {
         if (SelectedAlbum == null) return;
-        if (MessageBox.Show($"Delete album «{SelectedAlbum.Name}»?", AppBranding.Name,
-                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+        var owner = Application.Current.MainWindow as Window;
+        if (owner != null && !DarkConfirmDialog.Ask(owner,
+                string.Format(_loc.T("albums.deleteConfirm"), SelectedAlbum.Name)))
             return;
         var id = SelectedAlbum.Id;
         await _albums.DeleteAsync(id);

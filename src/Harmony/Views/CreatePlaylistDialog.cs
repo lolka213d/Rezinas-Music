@@ -248,8 +248,7 @@ public sealed class CreatePlaylistDialog : Window
         var name = _nameBox.Text.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
-            MessageBox.Show(this, _loc.T("createPlaylist.nameRequired"), AppBranding.Name,
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            DarkAlertDialog.Show(this, _loc.T("createPlaylist.nameRequired"));
             _nameBox.Focus();
             return;
         }
