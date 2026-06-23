@@ -166,6 +166,94 @@ body {
 }
 .feature-list li { margin: 0; }
 
+.about { padding: 8px 0 48px; }
+.about__head { margin-bottom: 28px; max-width: 560px; }
+.about__head h2 {
+  margin: 0 0 10px;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  letter-spacing: -0.02em;
+}
+.about__lead { margin: 0; }
+
+.about__shell { padding: 18px; overflow: hidden; }
+
+.about-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px;
+  margin-bottom: 22px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  width: fit-content;
+  max-width: 100%;
+}
+.about-tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.about-tab:hover { color: var(--text); }
+.about-tab.is-active {
+  color: white;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.85), rgba(99, 102, 241, 0.85));
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.35);
+}
+
+.about-panels { position: relative; }
+.about-panel {
+  display: none;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 28px;
+  align-items: center;
+}
+.about-panel.is-active {
+  display: grid;
+  animation: about-in 0.32s ease;
+}
+@keyframes about-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.about-panel[hidden] { display: none !important; }
+
+.about-panel__shot { margin: 0; min-width: 0; }
+.about-panel__copy h3 {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+.about-panel__copy p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.about-points {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text);
+  font-size: 0.9rem;
+  display: grid;
+  gap: 8px;
+}
+.about-points li { color: var(--muted); }
+.about-points li::marker { color: var(--violet); }
+
+@media (max-width: 860px) {
+  .about-panel.is-active { grid-template-columns: 1fr; }
+  .about-tabs { width: 100%; justify-content: stretch; }
+  .about-tab { flex: 1 1 auto; text-align: center; padding-inline: 12px; }
+}
+
 .download { padding-bottom: 40px; }
 .panel { padding: 24px 28px; }
 .panel--center { text-align: center; }

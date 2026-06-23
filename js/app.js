@@ -64,3 +64,43 @@ async function loadLatestRelease() {
 }
 
 loadLatestRelease();
+
+function initAboutTabs() {
+  const tabs = document.querySelectorAll('.about-tab');
+  const panels = document.querySelectorAll('.about-panel');
+  if (!tabs.length) return;
+
+  function activate(name) {
+    tabs.forEach(tab => {
+      const on = tab.dataset.tab === name;
+      tab.classList.toggle('is-active', on);
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      tab.tabIndex = on ? 0 : -1;
+    });
+
+    panels.forEach(panel => {
+      const on = panel.id === `panel-${name}`;
+      panel.classList.toggle('is-active', on);
+      panel.hidden = !on;
+    });
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => activate(tab.dataset.tab));
+    tab.addEventListener('keydown', e => {
+      const list = [...tabs];
+      const i = list.indexOf(tab);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        list[(i + 1) % list.length].focus();
+        activate(list[(i + 1) % list.length].dataset.tab);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        list[(i - 1 + list.length) % list.length].focus();
+        activate(list[(i - 1 + list.length) % list.length].dataset.tab);
+      }
+    });
+  });
+}
+
+initAboutTabs();
