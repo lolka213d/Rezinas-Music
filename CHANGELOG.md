@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.8
+
+- Playback: no more 30-second Deezer preview fallback — two-pass YouTube search (strict then relaxed) with latin artist queries for full-length audio
+
 ## 1.2.7
 
 - Playback: stricter duration match (±5–8s), artist + album in YouTube search; rejects wrong versions (e.g. 2:20 instead of 2:38)
