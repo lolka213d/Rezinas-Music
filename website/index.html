@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rezinas Music — Windows desktop player</title>
-  <meta name="description" content="Rezinas Music — premium dark glass music player for Windows. Playlists, My Wave radio, lyrics, Spotify sync, Discord status." />
+  <meta name="description" content="Rezinas Music — dark glass desktop player for Windows. Playlists, My Wave radio, lyrics, Spotify sync." />
   <link rel="icon" href="assets/app-icon.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,8 +22,6 @@
         <span>Rezinas Music</span>
       </a>
       <nav class="nav">
-        <a href="#screenshots">Screenshots</a>
-        <a href="#features">Features</a>
         <a href="#download">Download</a>
         <a href="#support">Support</a>
         <a href="https://github.com/lolka213d/Rezinas-Music" target="_blank" rel="noopener">GitHub</a>
@@ -34,18 +32,12 @@
   <main>
     <section class="hero container">
       <div class="hero__text">
-        <p class="eyebrow">Windows 10/11 · .NET 8 · Dark glass UI</p>
+        <p class="eyebrow">Windows 10/11 · .NET 8</p>
         <h1>Your music,<br />one premium player.</h1>
         <p class="lead">
-          Rezinas Music is a desktop player built for long sessions: Aurora home feed,
-          personal radio, full library management, synced lyrics, and a bottom player bar
-          that stays out of your way.
+          Playlists, «My Wave» radio, synced lyrics, library import, Spotify sync,
+          Discord status — free, no ads.
         </p>
-        <ul class="hero__bullets">
-          <li>Free to use — no ads, no subscription</li>
-          <li>Installer for Windows x64 (~70 MB)</li>
-          <li>10 interface languages</li>
-        </ul>
         <div class="hero__actions">
           <a id="download-btn" class="btn btn--primary" href="#download">
             <span id="download-label">Download latest</span>
@@ -58,158 +50,34 @@
         <p id="update-status" class="status" aria-live="polite">Checking for updates…</p>
       </div>
       <figure class="hero__shot glass">
-        <div class="shot-frame shot-frame--wide">
-          <img src="assets/01-main.png" alt="Rezinas Music — Home screen with Discover cards and recommended playlists" loading="eager" />
+        <div class="shot-frame">
+          <img src="assets/01-main.png" alt="Rezinas Music — main screen" loading="eager" />
         </div>
-        <figcaption class="shot-caption">Home · Discover feed & recommended playlists</figcaption>
       </figure>
     </section>
 
-    <section id="screenshots" class="screenshots container">
-      <div class="section-head">
-        <h2>Inside the app</h2>
-        <p class="section-lead">Dark glass panels, soft violet accents, and a layout inspired by modern streaming apps — but fully local and under your control.</p>
-      </div>
-      <div class="screenshots__grid">
-        <figure class="glass shot-card">
-          <div class="shot-frame shot-frame--wide">
-            <img src="assets/01-main.png" alt="Main screen" loading="lazy" />
-          </div>
-          <figcaption>
-            <strong>Home</strong>
-            <span>Good morning/afternoon/evening greeting, Discover shortcuts, daily mix, and Deezer-powered rows.</span>
-          </figcaption>
-        </figure>
-        <figure class="glass shot-card">
-          <div class="shot-frame shot-frame--square">
-            <img src="assets/02-player.png" alt="Now playing" loading="lazy" />
-          </div>
-          <figcaption>
-            <strong>Player bar</strong>
-            <span>Cover art, transport controls, progress scrubber, volume, and lyrics button — always visible.</span>
-          </figcaption>
-        </figure>
-      </div>
-    </section>
-
-    <section class="sections container">
-      <div class="section-head">
-        <h2>Everything in one app</h2>
-        <p class="section-lead">Navigation is simple: top bar for pages, bottom bar for playback, side panel for queue and context.</p>
-      </div>
-      <div class="sections__grid">
-        <article class="glass section-card">
-          <span class="section-card__tag">Home</span>
-          <h3>Aurora feed</h3>
-          <p>Personalized rows, genre picks, daily mix, and quick access to playlists, favorites, history, and library.</p>
-        </article>
-        <article class="glass section-card">
-          <span class="section-card__tag">My Wave</span>
-          <h3>Endless radio</h3>
-          <p>Russian hits, international chart, genre stations, and a «For you» mix from your taste — refreshed every day.</p>
-        </article>
-        <article class="glass section-card">
-          <span class="section-card__tag">Search</span>
-          <h3>Find anything</h3>
-          <p>Search Deezer, YouTube, SoundCloud, and your local library. Filter by tracks, albums, artists, or podcasts.</p>
-        </article>
-        <article class="glass section-card">
-          <span class="section-card__tag">Library</span>
-          <h3>Your collection</h3>
-          <p>Import folders from PC, filter by artist, smart playlists («never played», «from 2024»), and full track list.</p>
-        </article>
-        <article class="glass section-card">
-          <span class="section-card__tag">Playlists</span>
-          <h3>Build & browse</h3>
-          <p>Create playlists, mosaic covers, drag-and-drop queue order, shuffle, and export/import as JSON.</p>
-        </article>
-        <article class="glass section-card">
-          <span class="section-card__tag">Album view</span>
-          <h3>Immersive playback</h3>
-          <p>Hero cover, synced lyrics panel, track list with play/shuffle/like — album page like a mini streaming app.</p>
-        </article>
-        <article class="glass section-card">
-          <span class="section-card__tag">Now Playing</span>
-          <h3>Context panel</h3>
-          <p>Queue with drag-and-drop, artist bio, credits, Spotify links, and full-screen lyrics overlay.</p>
-        </article>
-        <article class="glass section-card">
-          <span class="section-card__tag">Settings</span>
-          <h3>Make it yours</h3>
-          <p>Dark theme, language, equalizer, crossfade, hotkeys, Discord status, Spotify sync, backup ZIP, and stats.</p>
-        </article>
-      </div>
-    </section>
-
     <section id="features" class="features container">
-      <div class="section-head">
-        <h2>Features</h2>
-        <p class="section-lead">Built for people who listen for hours — not just press play once.</p>
-      </div>
-      <div class="grid">
-        <article class="glass card">
-          <h3>My Wave · daily refresh</h3>
-          <p>Personal radio and home mixes update once per calendar day — new picks without manual refresh.</p>
-        </article>
-        <article class="glass card">
-          <h3>Synced lyrics</h3>
-          <p>LRC timing from LRCLIB, full-screen overlay, album-side panel, and offset tuning in Settings.</p>
-        </article>
-        <article class="glass card">
-          <h3>Spotify sync</h3>
-          <p>Log in with Spotify, import playlists and liked songs, optional auto-sync on a schedule.</p>
-        </article>
-        <article class="glass card">
-          <h3>Discord Rich Presence</h3>
-          <p>Show what you listen to in Discord with cover art and app logo — toggle in Settings.</p>
-        </article>
-        <article class="glass card">
-          <h3>Queue & crossfade</h3>
-          <p>Reorder Up Next with drag-and-drop, repeat modes, shuffle, gapless-style crossfade between tracks.</p>
-        </article>
-        <article class="glass card">
-          <h3>Backup & privacy</h3>
-          <p>Playlists and settings in local SQLite. Export JSON/ZIP backup. No analytics server.</p>
-        </article>
-        <article class="glass card">
-          <h3>Media keys & tray</h3>
-          <p>Keyboard shortcuts, system media keys, mini player, and background playback from the tray.</p>
-        </article>
-        <article class="glass card">
-          <h3>10 languages</h3>
-          <p>English, Russian, Ukrainian, Spanish, German, French, Italian, Portuguese, Polish, Japanese.</p>
-        </article>
-        <article class="glass card">
-          <h3>Listening stats</h3>
-          <p>Week / month / year play counts, top artist, and top track — right in Settings.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="install container">
-      <div class="glass panel">
-        <h2>Install in 3 steps</h2>
-        <ol class="steps">
-          <li><strong>Download</strong> the latest <code>RezinasMusic-Setup-x.x.x.exe</code> from GitHub Releases.</li>
-          <li><strong>Run the installer</strong> — pick folder and language (English or Russian at setup).</li>
-          <li><strong>Launch</strong> — your library stays in <code>%LOCALAPPDATA%\RezinasMusic\</code> on your PC only.</li>
-        </ol>
-        <p class="muted install-note">Requires Windows 10/11 x64. No .NET install needed — the app is self-contained.</p>
-      </div>
+      <ul class="feature-list glass">
+        <li>My Wave & daily mix — refreshed every day</li>
+        <li>Synced lyrics + full-screen overlay</li>
+        <li>Playlists, favorites, history, library import</li>
+        <li>Spotify login & playlist sync</li>
+        <li>Discord Rich Presence</li>
+        <li>10 languages · local data · no telemetry</li>
+      </ul>
     </section>
 
     <section id="download" class="download container">
       <div class="glass panel">
         <div class="panel__head">
-          <h2>Latest release</h2>
+          <h2>Download</h2>
           <span id="release-badge" class="badge">…</span>
         </div>
-        <p class="muted">This block syncs automatically from <a href="https://github.com/lolka213d/Rezinas-Music/releases" target="_blank" rel="noopener">GitHub Releases</a> — publish a new tag and the site updates.</p>
-        <div id="release-notes" class="release-notes muted">Loading release notes…</div>
+        <p class="muted">Windows x64 installer · updates from <a href="https://github.com/lolka213d/Rezinas-Music/releases" target="_blank" rel="noopener">GitHub Releases</a></p>
+        <div id="release-notes" class="release-notes muted">Loading…</div>
         <div class="panel__actions">
           <a id="release-download" class="btn btn--primary" href="#" hidden>Download installer</a>
-          <a class="btn btn--outline" href="https://github.com/lolka213d/Rezinas-Music/blob/mine/CHANGELOG.md" target="_blank" rel="noopener">Full changelog</a>
-          <a class="btn btn--outline" href="https://github.com/lolka213d/Rezinas-Music" target="_blank" rel="noopener">Source code</a>
+          <a class="btn btn--outline" href="https://github.com/lolka213d/Rezinas-Music/blob/mine/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
         </div>
       </div>
     </section>
@@ -217,13 +85,11 @@
     <section id="support" class="support container">
       <div class="glass panel panel--center">
         <h2>Support the project</h2>
-        <p class="muted">Rezinas Music is free and ad-free. If it helps your daily listening, you can support development.</p>
         <div class="support-links">
           <a class="btn btn--outline" href="https://www.paypal.com/ncp/payment/PMVP42DTMTBSL" target="_blank" rel="noopener">PayPal</a>
           <a class="btn btn--outline" href="https://buymeacoffee.com/rezinas" target="_blank" rel="noopener">Buy Me a Coffee</a>
           <a class="btn btn--outline" href="https://boosty.to/moonsfh" target="_blank" rel="noopener">Boosty</a>
           <a class="btn btn--outline" href="https://www.patreon.com/rezinas" target="_blank" rel="noopener">Patreon</a>
-          <a class="btn btn--outline" href="https://www.donationalerts.com/r/rezinas" target="_blank" rel="noopener">DonateAlerts</a>
         </div>
       </div>
     </section>
@@ -231,10 +97,9 @@
 
   <footer class="footer">
     <div class="container footer__inner">
-      <span>© 2026 Rezinas Music · by lolka213d</span>
+      <span>© 2026 Rezinas Music</span>
       <a href="https://github.com/lolka213d/Rezinas-Music">GitHub</a>
       <a href="https://github.com/lolka213d/Rezinas-Music/releases">Releases</a>
-      <a href="https://github.com/lolka213d/Rezinas-Music/blob/mine/LICENSE">License</a>
     </div>
   </footer>
 
