@@ -340,11 +340,18 @@ public partial class PlayerViewModel : ObservableObject
 
             if (_player.Duration.TotalSeconds > 1)
             {
-                DurationSeconds = _player.Duration.TotalSeconds;
-                source.DurationSeconds = (int)Math.Round(_player.Duration.TotalSeconds);
-                track.DurationSeconds = source.DurationSeconds;
-                CurrentTrack = CloneTrack(track);
-                OnPropertyChanged(nameof(HasTrack));
+                var actual = _player.Duration.TotalSeconds;
+                var expected = source.DurationSeconds;
+                if (expected <= 0 || Math.Abs(actual - expected) <= Math.Max(8, expected * 0.06))
+                {
+                    DurationSeconds = actual;
+                    source.DurationSeconds = (int)Math.Round(actual);
+                    track.DurationSeconds = source.DurationSeconds;
+                    CurrentTrack = CloneTrack(track);
+                    OnPropertyChanged(nameof(HasTrack));
+                }
+                else
+                    _log.Warning($"Stream duration mismatch for '{source.Title}': expected {expected}s, got {actual:F0}s");
             }
 
             if (restoreSeek > 0.5)

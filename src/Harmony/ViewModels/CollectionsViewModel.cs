@@ -77,7 +77,6 @@ public partial class CollectionsViewModel : ObservableObject
     public PlayerViewModel Player => _player;
 
     public ILocalizationService Loc => _loc;
-    public string PlaylistsSubtitle => _loc.T("library.playlistsSubtitle");
 
     public ObservableCollection<Album> UserAlbums { get; } = new();
     public ObservableCollection<Playlist> Playlists { get; } = new();

@@ -10,41 +10,21 @@
 
     <Grid MinHeight="320" VerticalAlignment="Stretch">
         <!-- ===== Playlist browse (grid) ===== -->
-        <Grid Margin="0" Visibility="{Binding ShowPlaylistBrowse, Converter={StaticResource BoolToVisibility}}">
+        <Grid Margin="{StaticResource PagePadding}" Visibility="{Binding ShowPlaylistBrowse, Converter={StaticResource BoolToVisibility}}">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" CornerRadius="18" Padding="20,18" Margin="0,0,0,16" ClipToBounds="True"
-                    BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#447C3AED" Offset="0" />
-                        <GradientStop Color="#338B5CF6" Offset="0.55" />
-                        <GradientStop Color="#22101820" Offset="1" />
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="56" Height="56" CornerRadius="14" Background="#22FFFFFF">
-                            <Path Data="{StaticResource IconPlaylist}" Fill="White" Stretch="Uniform" Width="24" Height="24" />
-                        </Border>
-                        <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Loc.NavPlaylists}" FontSize="24" FontWeight="Bold" />
-                            <TextBlock Text="{Binding PlaylistsSubtitle}" FontSize="13" Margin="0,5,0,0" Foreground="#D0FFFFFF" />
-                        </StackPanel>
-                    </StackPanel>
-                    <Button Grid.Column="1" Style="{StaticResource PillButton}" Content="{Binding Loc.CommonCreate}"
-                            Command="{Binding CreateEmptyPlaylistCommand}" Padding="16,9" VerticalAlignment="Center" />
-                </Grid>
-            </Border>
+            <Grid Grid.Row="0" Margin="0,0,0,12">
+                <TextBlock Text="{Binding Loc.NavPlaylists}" Style="{StaticResource RzPageTitle}" FontSize="32" VerticalAlignment="Center" />
+            </Grid>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Grid.Row="1" Margin="0,0,0,14" Orientation="Horizontal"
+                        Visibility="Collapsed" />
+
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <cmp:EmptyState Title="{Binding CreateFirstPlaylistTitle}"
                                     Description="{Binding CreateFirstPlaylistDesc}"

@@ -1,86 +1,71 @@
-<UserControl x:Class="Harmony.Views.HistoryView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:Harmony.ViewModels"
-             xmlns:cmp="clr-namespace:Harmony.Components">
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="0">
-
-            <Border CornerRadius="18" Padding="20,18" Margin="0,0,0,16" ClipToBounds="True"
-                    BorderBrush="{StaticResource GlassBorderBrush}" BorderThickness="1">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#446366F1" Offset="0" />
-                        <GradientStop Color="#334F46E5" Offset="0.55" />
-                        <GradientStop Color="#22101820" Offset="1" />
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="56" Height="56" CornerRadius="14" Background="#22FFFFFF">
-                            <Path Data="{StaticResource IconHistory}" Fill="White" Stretch="Uniform" Width="24" Height="24" />
-                        </Border>
-                        <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Loc.HistoryTitle}" FontSize="24" FontWeight="Bold" />
-                            <TextBlock Text="{Binding Loc.HistorySubtitle}" FontSize="13" Margin="0,5,0,0" Foreground="#D0FFFFFF" />
-                        </StackPanel>
-                    </StackPanel>
-                    <Button Grid.Column="1" Style="{StaticResource OutlineButton}" Content="{Binding Loc.HistoryClear}"
-                            Command="{Binding ClearCommand}" VerticalAlignment="Center" />
-                </Grid>
-            </Border>
-
-            <Border Style="{StaticResource GlassPanel}" Padding="12,10" Margin="0,0,0,12" Effect="{x:Null}">
-                <Border Style="{StaticResource RzSearchBox}" Effect="{x:Null}" Background="Transparent" BorderThickness="0" Padding="0">
-                    <Grid>
-                        <Path Data="{StaticResource IconSearch}" Fill="{StaticResource TextMutedBrush}"
-                              Stretch="Uniform" Width="16" Height="16" Margin="12,0,0,0"
-                              VerticalAlignment="Center" HorizontalAlignment="Left" />
-                        <TextBox Style="{StaticResource RzSearchTextBox}" Margin="36,0,8,0"
-                                 Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
-                                 Tag="{Binding Loc.HistorySearchPlaceholder}" />
-                    </Grid>
-                </Border>
-            </Border>
-
-            <cmp:EmptyState Title="{Binding Loc.HistoryEmptyTitle}"
-                            Description="{Binding Loc.HistoryEmptyDesc}"
-                            IconData="{StaticResource IconHistory}"
-                            HorizontalAlignment="Center" Margin="0,32"
-                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
-
-            <ItemsControl ItemsSource="{Binding Groups}"
-                          Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type vm:HistoryGroup}">
-                        <StackPanel Margin="0,0,0,16">
-                            <TextBlock Text="{Binding Title}" Style="{StaticResource RzSectionTitle}" />
-                            <Border Style="{StaticResource GlassPanel}" Padding="8,6" Effect="{x:Null}">
-                                <ListBox ItemsSource="{Binding Items}" Style="{StaticResource ActiveTrackListStyle}"
-                                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                         ScrollViewer.CanContentScroll="False">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <cmp:TrackRow Track="{Binding Track}"
-                                                          ShowPlayButton="False"
-                                                          MetaText="{Binding PlayedAt, StringFormat='{}{0:dd MMM, HH:mm}'}"
-                                                          ShowMeta="True"
-                                                          ShowDuration="True"
-                                                          CurrentTrack="{Binding DataContext.Player.CurrentTrack, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                          PlayCommand="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Border>
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </StackPanel>
-    </ScrollViewer>
-</UserControl>
-
+<UserControl x:Class="Harmony.Views.HistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Harmony.ViewModels"
+             xmlns:cmp="clr-namespace:Harmony.Components">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="{StaticResource PagePadding}">
+
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{Binding Loc.HistoryTitle}" Style="{StaticResource RzPageTitle}" FontSize="34" />
+                    <TextBlock Text="{Binding Loc.HistorySubtitle}" Style="{StaticResource RzBody}" Margin="0,4,0,0" />
+                </StackPanel>
+                <Button Grid.Column="1" Style="{StaticResource GhostButton}" Content="{Binding Loc.HistoryClear}"
+                        Command="{Binding ClearCommand}" VerticalAlignment="Center" />
+            </Grid>
+
+            <Border Style="{StaticResource GlassPanel}" Padding="12,10" Margin="0,0,0,12" Effect="{x:Null}">
+                <Border Style="{StaticResource RzSearchBox}" Effect="{x:Null}" Background="Transparent" BorderThickness="0" Padding="0">
+                    <Grid>
+                        <Path Data="{StaticResource IconSearch}" Fill="{StaticResource TextMutedBrush}"
+                              Stretch="Uniform" Width="16" Height="16" Margin="12,0,0,0"
+                              VerticalAlignment="Center" HorizontalAlignment="Left" />
+                        <TextBox Style="{StaticResource RzSearchTextBox}" Margin="36,0,8,0"
+                                 Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                 Tag="{Binding Loc.HistorySearchPlaceholder}" />
+                    </Grid>
+                </Border>
+            </Border>
+
+            <cmp:EmptyState Title="{Binding Loc.HistoryEmptyTitle}"
+                            Description="{Binding Loc.HistoryEmptyDesc}"
+                            IconData="{StaticResource IconHistory}"
+                            HorizontalAlignment="Center" Margin="0,32"
+                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
+
+            <ItemsControl ItemsSource="{Binding Groups}"
+                          Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:HistoryGroup}">
+                        <StackPanel Margin="0,0,0,16">
+                            <TextBlock Text="{Binding Title}" Style="{StaticResource RzSectionTitle}" />
+                            <Border Style="{StaticResource GlassPanel}" Padding="8,6" Effect="{x:Null}">
+                                <ListBox ItemsSource="{Binding Items}" Style="{StaticResource ActiveTrackListStyle}"
+                                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                         ScrollViewer.CanContentScroll="False">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <cmp:TrackRow Track="{Binding Track}"
+                                                          ShowPlayButton="False"
+                                                          MetaText="{Binding PlayedAt, StringFormat='{}{0:dd MMM, HH:mm}'}"
+                                                          ShowMeta="True"
+                                                          ShowDuration="True"
+                                                          CurrentTrack="{Binding DataContext.Player.CurrentTrack, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                          PlayCommand="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Border>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
+

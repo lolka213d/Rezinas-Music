@@ -14,7 +14,7 @@ public partial class MainViewModel : ObservableObject
     private readonly HomeViewModel _home;
     private readonly RadioViewModel _radio;
     private readonly SearchViewModel _search;
-    private readonly LibraryHubViewModel _libraryHub;
+    private readonly LibraryViewModel _library;
     private readonly CollectionsViewModel _collections;
     private readonly FavoritesViewModel _favorites;
     private readonly HistoryViewModel _history;
@@ -34,7 +34,7 @@ public partial class MainViewModel : ObservableObject
         HomeViewModel home,
         RadioViewModel radio,
         SearchViewModel search,
-        LibraryHubViewModel libraryHub,
+        LibraryViewModel library,
         CollectionsViewModel collections,
         FavoritesViewModel favorites,
         HistoryViewModel history,
@@ -52,7 +52,7 @@ public partial class MainViewModel : ObservableObject
         _home = home;
         _radio = radio;
         _search = search;
-        _libraryHub = libraryHub;
+        _library = library;
         _collections = collections;
         _favorites = favorites;
         _history = history;
@@ -197,22 +197,21 @@ public partial class MainViewModel : ObservableObject
             case AppPage.Library:
             case AppPage.Albums:
             case AppPage.Collections:
-                _libraryHub.OpenSection(page);
-                CurrentPage = _libraryHub;
+                _ = _library.LoadAsync();
+                CurrentPage = _library;
                 break;
             case AppPage.Playlists:
                 _collections.SelectedKind = CollectionKind.Playlists;
                 _ = _collections.OpenAfterNavigationAsync(_navigation.ConsumePendingPlaylistId());
-                _libraryHub.OpenSection(AppPage.Playlists);
-                CurrentPage = _libraryHub;
+                CurrentPage = _collections;
                 break;
             case AppPage.Favorites:
-                _libraryHub.OpenSection(AppPage.Favorites);
-                CurrentPage = _libraryHub;
+                _ = _favorites.LoadAsync();
+                CurrentPage = _favorites;
                 break;
             case AppPage.History:
-                _libraryHub.OpenSection(AppPage.History);
-                CurrentPage = _libraryHub;
+                _ = _history.LoadAsync();
+                CurrentPage = _history;
                 break;
             case AppPage.AlbumDetail:
                 if (_navigation.PendingAlbum != null)

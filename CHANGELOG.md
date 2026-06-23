@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.7
+
+- Playback: stricter duration match (±5–8s), artist + album in YouTube search; rejects wrong versions (e.g. 2:20 instead of 2:38)
+- Reverted library hub cards — Library / Playlists / Favorites / History open as separate pages again
+
 ## 1.2.6
 
 - Playback: require artist match when resolving YouTube streams (title + artist + channel); pick best candidate instead of first partial title match

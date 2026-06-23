@@ -133,20 +133,23 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             _videoIdCache.TryRemove(cacheKey, out _);
         }
 
-        var baseQuery = $"{searchArtist} {PrimaryTitle(searchTitle)}".Trim();
+        var albumPhrase = PrimaryAlbum(track.AlbumName);
+        var titlePhrase = PrimaryTitle(searchTitle);
+        var baseQuery = $"{searchArtist} {titlePhrase}".Trim();
         if (string.IsNullOrWhiteSpace(baseQuery))
         {
             _log.Warning($"Empty search query for track '{track.Title}', using preview.");
             return deezerPreview ?? track.StreamUrl;
         }
 
-        var queries = new[]
-        {
-            $"{searchArtist} {PrimaryTitle(searchTitle)} official audio",
-            $"{searchArtist} - {PrimaryTitle(searchTitle)}",
-            $"{searchArtist} {PrimaryTitle(searchTitle)}",
-            baseQuery
-        };
+        var queryList = new List<string>();
+        if (!string.IsNullOrWhiteSpace(albumPhrase))
+            queryList.Add($"{searchArtist} {titlePhrase} {albumPhrase}");
+        queryList.Add($"{searchArtist} - {titlePhrase}");
+        queryList.Add($"{searchArtist} {titlePhrase} official audio");
+        queryList.Add($"{searchArtist} {titlePhrase}");
+        queryList.Add(baseQuery);
+        var queries = queryList.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
         var probeTrack = CloneForSearch(track, searchArtist, searchTitle, expectedDuration);
 
@@ -174,8 +177,22 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
 
     private static string CacheKey(Track track) =>
         string.IsNullOrWhiteSpace(track.SourceId)
-            ? $"{track.Source}:{track.ArtistName}:{track.Title}"
-            : $"{track.Source}:{track.SourceId}";
+            ? $"v3:{track.Source}:{track.ArtistName}:{track.Title}:{track.DurationSeconds}"
+            : $"v3:{track.Source}:{track.SourceId}";
+
+    private static int DurationToleranceSeconds(int durationSeconds)
+    {
+        if (durationSeconds <= 0) return 10;
+        return Math.Clamp((int)Math.Round(durationSeconds * 0.04), 5, 8);
+    }
+
+    private static string PrimaryAlbum(string? album)
+    {
+        if (string.IsNullOrWhiteSpace(album)) return string.Empty;
+        var cut = album.Split(['.', '·', '|'], 2, StringSplitOptions.TrimEntries);
+        var phrase = cut[0].Trim();
+        return phrase.Length > 48 ? phrase[..48].Trim() : phrase;
+    }
 
     private static Track CloneForSearch(Track track, string artist, string title, int durationSeconds) =>
         new()
@@ -220,10 +237,10 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             if (track.DurationSeconds > 0)
             {
                 var delta = Math.Abs(videoDuration - track.DurationSeconds);
-                var tolerance = Math.Max(20, track.DurationSeconds * 0.12);
+                var tolerance = DurationToleranceSeconds(track.DurationSeconds);
                 if (delta > tolerance)
                 {
-                    _log.Info($"Skip duration mismatch '{videoTitle}' ({videoDuration:F0}s vs {track.DurationSeconds}s)");
+                    _log.Info($"Skip duration mismatch '{videoTitle}' ({videoDuration:F0}s vs {track.DurationSeconds}s, tol {tolerance}s)");
                     continue;
                 }
             }
@@ -296,11 +313,20 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         var video = NormalizeForMatch(videoTitle);
         if (video.Length == 0) return 0;
 
-        var unwanted = new[] { "live", "karaoke", "instrumental", "cover version", "nightcore", "sped up" };
+        var unwanted = new[] { "live", "karaoke", "instrumental", "nightcore", "sped up", "cover version", "cover", "кавер" };
+        var trackMeta = NormalizeForMatch($"{track.Title} {track.AlbumName}");
         foreach (var word in unwanted)
         {
             if (video.Contains(word, StringComparison.OrdinalIgnoreCase)
-                && !NormalizeForMatch(track.Title).Contains(word, StringComparison.OrdinalIgnoreCase))
+                && !trackMeta.Contains(word, StringComparison.OrdinalIgnoreCase))
+                return 0;
+        }
+
+        if (video.Contains("tribute", StringComparison.OrdinalIgnoreCase)
+            || video.Contains("трибьют", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!trackMeta.Contains("tribute", StringComparison.OrdinalIgnoreCase)
+                && !trackMeta.Contains("трибьют", StringComparison.OrdinalIgnoreCase))
                 return 0;
         }
 
@@ -322,6 +348,21 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         var score = (int)Math.Round(titleRatio * 50);
         score += ArtistMatchStrength(haystack, track.ArtistName);
 
+        var album = NormalizeForMatch(PrimaryAlbum(track.AlbumName));
+        if (album.Length > 3)
+        {
+            var albumTokens = album.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Where(t => t.Length > 2)
+                .Take(4)
+                .ToList();
+            if (albumTokens.Count > 0)
+            {
+                var albumHits = albumTokens.Count(t => haystack.Contains(t, StringComparison.OrdinalIgnoreCase));
+                if (albumHits > 0)
+                    score += (int)Math.Round((double)albumHits / albumTokens.Count * 20);
+            }
+        }
+
         if (video.Contains("official", StringComparison.OrdinalIgnoreCase))
             score += 8;
         if (video.Contains("audio", StringComparison.OrdinalIgnoreCase))
@@ -330,11 +371,13 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
         if (track.DurationSeconds > 0 && videoDuration > 0)
         {
             var delta = Math.Abs(videoDuration - track.DurationSeconds);
-            var tolerance = Math.Max(20, track.DurationSeconds * 0.12);
-            if (delta <= tolerance / 2)
+            var tolerance = DurationToleranceSeconds(track.DurationSeconds);
+            if (delta == 0)
+                score += 15;
+            else if (delta <= tolerance / 2)
                 score += 10;
             else if (delta <= tolerance)
-                score += 5;
+                score += 4;
         }
 
         return score;
@@ -495,7 +538,7 @@ public sealed class YouTubeStreamResolver : IStreamResolverService
             if (track.DurationSeconds > 0 && video.Duration.HasValue)
             {
                 var delta = Math.Abs(video.Duration.Value.TotalSeconds - track.DurationSeconds);
-                var tolerance = Math.Max(20, track.DurationSeconds * 0.12);
+                var tolerance = DurationToleranceSeconds(track.DurationSeconds);
                 if (delta > tolerance)
                 {
                     _log.Info($"Drop stale video-id cache duration for '{track.Title}'");
